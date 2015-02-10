@@ -1,0 +1,3 @@
+* Move configs out of generate_qsub_script.py
+* Add new gene trees to configs
+* Allow use of other methods

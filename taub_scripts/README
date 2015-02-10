@@ -1,0 +1,30 @@
+Running things on Taub
+======================
+
+To queue a job:
+python generate_qsub_script.py <jobname>
+
+Job names are specified in generate_qsub_script.py as follows:
+
+    'wqmc-estimated': {
+        'nreps':["%02d" % i for i in range(1,51)],
+        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
+                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
+                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
+                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
+        'genetreetype':'estimatedgenetre',
+        'quartetsfile':'quartetswqmc-estimated',
+        'quartetgenerator':'quartets/quartet-controller.sh',
+        'method':'./wQMC/max-cut-tree',
+        'methodparams':'weights=on'},
+
+- The name of the key is the job name
+- nreps is a list 01, 02, 03...50 corresponding to the individual trials
+- dirpaths is a list of locations of the gene tree files, along with a short name for the hgt rate, separated by a space.
+- ngenes is the number of gene trees in each test
+- genetreetype is the name of the gene tree file in each folder to use - estimatedgenetre vs truegenetree
+- quartetsfile is the description of the quartets corresponding to the gene tree. Multiple jobs that use the same gene trees should have the same value here, that way quartets are not generated multiple times.
+- quartetgenerator is a script that takes as its first parameter a file of gene trees and as as its second parameter a file of quartets to generate
+- method currently must be ./wQMC/max-cut-tree
+- methodparams should be weights=on
