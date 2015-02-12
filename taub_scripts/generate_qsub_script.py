@@ -12,11 +12,13 @@ mainformatstring="""
 # request 1 node
 #PBS -l nodes=1:ppn=1:taub
 # request 4 hours and 30 minutes of cpu time
-#PBS -l cput=02:00:00  
+#PBS -l cput=04:00:00  
 # request 4 hours and 30 minutes of cpu time
-#PBS -l walltime=02:00:00  
+#PBS -l walltime=04:00:00  
 # mail is sent to you when the job starts and when it terminates or aborts
 #PBS -m a
+#PBS -q cse
+#PBS -l naccesspolicy=singleuser
 # specify your email address
 #PBS -M me@pranj.al
 # By default, PBS scripts execute in your home directory, not the 
@@ -95,7 +97,7 @@ python collate_branchrates.py {scratchdir}/branchrates/ > {jobname}.out
 exit 0
 """
 
-tasks_per_job=10
+tasks_per_job=50
 
 def gen_param_file(paramfile, nreps, dirpath_labels, ngenes, genetreetype):
     lines = [" ".join(i) for i in itertools.product(nreps, dirpath_labels, ngenes, [genetreetype])]
@@ -126,14 +128,18 @@ def gen_analyze_qsub(jobname):
                                          'basedir':basedir,
                                          'scratchdir':scratchdir})
 
+dirpaths = ['hgt-data/model.50.2000000.0.000001.0 0',    
+                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
+                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
+                    'hgt-data/model.50.2000000.0.000001.0.00000002 2',
+                    'hgt-data/model.50.2000000.0.000001.0.00000002 20',
+                    'hgt-data/model.50.2000000.0.000001.0.00000002 50']
+
 #names must not have underscores!
 configs = {
     'wqmc-estimated': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
         'quartetsfile':'quartetswqmc-estimated',
@@ -142,10 +148,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-true': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',
@@ -154,10 +157,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-invariants': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
         'quartetsfile':'quartetswqmc-estimated',
@@ -166,10 +166,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-invariants-true': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',
@@ -178,10 +175,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-invariants-c01': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
         'quartetsfile':'quartetswqmc-estimated',
@@ -190,10 +184,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-invariants-c01-true': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',
@@ -202,10 +193,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-invariants-c05': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
         'quartetsfile':'quartetswqmc-estimated',
@@ -214,10 +202,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-invariants-c05-true': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',
@@ -226,10 +211,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-invariants-c2': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
         'quartetsfile':'quartetswqmc-estimated',
@@ -238,10 +220,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-invariants-c2-true': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',
@@ -250,10 +229,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-invariants-c4': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
         'quartetsfile':'quartetswqmc-estimated',
@@ -262,10 +238,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-invariants-c4-true': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',
@@ -274,10 +247,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-invariants-c10': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
         'quartetsfile':'quartetswqmc-estimated',
@@ -286,10 +256,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-invariants-c10-true': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',
@@ -298,10 +265,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-dominant': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
         'quartetsfile':'quartetswqmc-estimated',
@@ -310,10 +274,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-dominant-true': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',
@@ -323,10 +284,7 @@ configs = {
 
     'wqmc-sparsesample-01p': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
         'quartetsfile':'quartetswqmc-estimated',
@@ -335,10 +293,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-sparsesample-true-01p': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',
@@ -348,10 +303,7 @@ configs = {
 
     'wqmc-sparsesample-10p': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
         'quartetsfile':'quartetswqmc-estimated',
@@ -360,10 +312,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-sparsesample-true-10p': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',
@@ -373,10 +322,7 @@ configs = {
 
     'wqmc-sparsesample-25p': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
         'quartetsfile':'quartetswqmc-estimated',
@@ -385,10 +331,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-sparsesample-true-25p': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',
@@ -398,10 +341,7 @@ configs = {
 
     'wqmc-sparsesample-50p': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
         'quartetsfile':'quartetswqmc-estimated',
@@ -410,10 +350,7 @@ configs = {
         'methodparams':'weights=on'},
     'wqmc-sparsesample-true-50p': {
         'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2'],
+        'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',

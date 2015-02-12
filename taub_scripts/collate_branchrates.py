@@ -64,33 +64,11 @@ def analyze(folder):
     methods_inv_true = [methods_inv_true[-1]] + methods_inv_true[:-1]
     methods_inv_estimated = sorted(list(set([i for i in methods_estimated if "invariants" in i])))
 
-    methods_sparsesample_estimated = sorted(list(set([i for i in methods_estimated if "sparsesample" in i]))) + [i for i in methods if 'wqmc-estimated' in i]
-    methods_sparsesample_true = sorted(list(set([i for i in methods_true if "sparsesample" in i]))) + [i for i in methods if 'wqmc-true' in i]
+    methods_sparsesample_estimated = sorted(list(set([i for i in methods_estimated if "sparsesample" in i and  i[-1] =='p']))) + [i for i in methods if 'wqmc-estimated' in i]
+    methods_sparsesample_true = sorted(list(set([i for i in methods_true if "sparsesample" in i and i[-1] =='p' ]))) + [i for i in methods if 'wqmc-true' in i]
 
     genecounts = set([i.ngenes for i in runs])
 
-    # for hgtrate in hgtrates:
-    #     print "| HGT | ngenes |", ' | '.join([i.replace("missingbranchrate","") for i in methods_estimated])
-    #     for ngenes in sorted([int(i) for i in genecounts]):            
-    #         print "|" + str(hgtrate) + "|" + str(ngenes) + "|" + "|".join([['{:.1f}'.format(i.value * 100) for i in runs if i.hgt == hgtrate and i.ngenes == ngenes and i.experiment == m][0] for m in methods_estimated])  + "|"
-    #     print
-    # for hgtrate in hgtrates:
-    #     print "| HGT | ngenes |", ' | '.join([i.replace("missingbranchrate","") for i in methods_true])
-    #     for ngenes in sorted([int(i) for i in genecounts]):
-    #         print "|" + str(hgtrate) + "|" + str(ngenes) + "|" + "|".join([['{:.1f}'.format(i.value * 100) for i in runs if i.hgt == hgtrate and i.ngenes == ngenes and i.experiment == m][0] for m in methods_true]) + "|"
-    #     print
-
-
-    # for hgtrate in hgtrates:
-    #     print hgtrate
-    #     for m in methods_estimated:
-    #         print "|" + str(m) + "|" + "|".join([['{:.1f}'.format(i.value * 100) for i in runs if i.hgt == hgtrate and i.ngenes == ngenes and i.experiment == m][0] for ngenes in sorted([int(i) for i in genecounts])])  + "|"
-    #     print
-    # for hgtrate in hgtrates:
-    #     print hgtrate
-    #     for m in methods_true:            
-    #         print "|" + str(m) + "|" + "|".join([['{:.1f}'.format(i.value * 100) for i in runs if i.hgt == hgtrate and i.ngenes == ngenes and i.experiment == m][0] for ngenes in sorted([int(i) for i in genecounts])])  + "|"
-    #     print
 
     printtable(methods_estimated, hgtrates, genecounts, runs)
     printtable(methods_true, hgtrates, genecounts, runs)
