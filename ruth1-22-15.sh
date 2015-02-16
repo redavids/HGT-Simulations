@@ -9,7 +9,7 @@ genes=1000
 species=50
 for b in 0.000001; do
 	for t in 2000000; do
-		for tr in 0 0.00000002 0.000000005 0.000000002; do 
+		for tr in 0 0.0000002 0.0000005 0.00000002 0.000000005 0.000000002; do 
 			./simphy -rs $rep -rl U:$genes,$genes -rg 1 -st U:$t,$t -si U:1,1 -sl U:$species,$species -sb U:$b,$b -cp U:200000,200000  -hs L:1.5,1 -hl L:1.2,1 -hg l:1.4,1 -cu E:10000000 -so U:1,1 -od 1 -or 0 -v 3  -cs 293745 -o model.$species.$t.$b.$tr -lt U:$tr,$tr -lk 1| tee log.$species.$t.$b.$tr;
 			for r in `ls -d model.$species.$t.$b.$tr/*/`; do 
 			        sed -i "" -e "s/_0_0//g" $r/g_trees*.trees; 
