@@ -165,7 +165,7 @@ foreach my  $dir (@dirs)
 		$f/=$f;
 		
 		#Sampling Sequence length
-		$length= int(gsl_ran_lognormal($rng->raw(),$shape_seqlength,$logscale_seqlength));
+		$length=1000; # int(gsl_ran_lognormal($rng->raw(),$shape_seqlength,$logscale_seqlength));
 
 		$models.=sprintf("\[MODEL] GTR%.*d\n\t[submodel]  GTR %f %f %f %f %f\n\t[statefreq] %f %f %f %f\n\t[rates] 0 %f 0\n",$n_digits,$locus,$a,$b,$c,$d,$e,$T,$C,$A,$G,$alpha);
 		$trees.=sprintf("\[TREE\] T%.*d %s\n",$n_digits,$locus,$itree);
