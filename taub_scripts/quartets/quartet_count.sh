@@ -15,4 +15,4 @@ tmp=`mktemp`
 
 #for x in `cat $1`; do echo $x|tr -d '\n' > $tmp; ./triplets.soda2103 printQuartets $tmp; done|sed 's/.*: //'| sed 's/^/\(\(/'| sed 's/$/\)\)\;/'| sed 's/ | /\),\(/'| sed 's/ /\,/g' # '
 
-for x in `cat $1`; do echo $x|tr -d '\n' > $tmp; ~/Dropbox/Programs/phylogenetics/quartets/triplets.soda2103 printQuartets $tmp; done|sed 's/.*: //'| sed 's/^/\(\(/'| sed 's/$/\)\)\;/'| sed 's/ | /\),\(/'| sed 's/ /\,/g' # '
+for x in `cat $1`; do echo $x|tr -d '\n' > $tmp; ~/phylogenetics/quartets/triplets.soda2103 printQuartets $tmp; done|sed 's/.*: //'| sed 's/^/\(\(/'| sed 's/$/\)\)\;/'| sed 's/ | /\),\(/'| sed 's/ /\,/g' # '

@@ -49,6 +49,7 @@ fixedfilename={scratchdir}/fixed$identifier
 treefilename={scratchdir}/trees/trees$identifier
 
 branchratefilename={scratchdir}/branchrates/missingbranchrate$identifier
+quartetscorefilename={scratchdir}/quartetscores/quartetscore$identifier
 
 
 genetreesubsetfilename={scratchdir}/genetreesubset$identifier
@@ -61,6 +62,10 @@ head $genetreefilename -n${{parameterArray[3]}} > $genetreesubsetfilename
 
 compareTrees/compareTrees.missingBranchRate $speciestreefilename $treefilename > $branchratefilename
 
+module load java
+
+java -jar ASTRAL/astral.4.7.6.jar -q $treefilename -i $genetreesubsetfilename 2>&1 | tail -n1 | cut -f5 -d' ' > $quartetscorefilename
+
 done
 
 exit 0
@@ -70,7 +75,7 @@ wqmc_core = """
 
 {quartetgenerator} $genetreesubsetfilename $quartetfilename {scratchdir}/{quartetscountfile}_${{parameterArray[2]}}_${{parameterArray[0]}}_${{parameterArray[3]}}
 
-cat $quartetfilename | sed s/"(("//g | sed s/"),("/"|"/g | sed s/")); "/":"/g n| sed '/|/!d' > $fixedfilename
+cat $quartetfilename | sed s/"(("//g | sed s/"),("/"|"/g | sed s/")); "/":"/g | sed '/|/!d' > $fixedfilename
 
 ./wQMC/max-cut-tree qrtt=$fixedfilename weights=on otre=$treefilename
 
@@ -78,10 +83,41 @@ cat $quartetfilename | sed s/"(("//g | sed s/"),("/"|"/g | sed s/")); "/":"/g n|
 
 njst_core = """
 
+module load R/3.1.2
+
 ./njst-package/njst $genetreesubsetfilename $treefilename
 
 """
 
+astral_core = """
+
+module load java
+
+java -jar ./ASTRAL/astral.4.7.6.jar -i $genetreesubsetfilename -o $treefilename
+
+"""
+
+astral_with_st_core = """
+
+module load java
+
+java -jar ./ASTRAL/astral.4.7.6.jar -i $genetreesubsetfilename -e $speciestreefilename -o $treefilename
+
+"""
+
+astral_with_wqmc_core = """
+
+{quartetgenerator} $genetreesubsetfilename $quartetfilename {scratchdir}/{quartetscountfile}_${{parameterArray[2]}}_${{parameterArray[0]}}_${{parameterArray[3]}}
+
+cat $quartetfilename | sed s/"(("//g | sed s/"),("/"|"/g | sed s/")); "/":"/g | sed '/|/!d' > $fixedfilename
+
+./wQMC/max-cut-tree qrtt=$fixedfilename weights=on otre=$treefilename-initial
+
+module load java
+
+java -jar ./ASTRAL/astral.4.7.6.jar -i $genetreesubsetfilename -e $treefilename-initial -o $treefilename
+
+"""
 
 collateformatstring="""
 # declare a name for this job to be sample_job
@@ -109,7 +145,7 @@ python collate_branchrates.py {scratchdir}/branchrates/ > {jobname}.out
 exit 0
 """
 
-tasks_per_job=50
+tasks_per_job=30
 
 def gen_param_file(paramfile, nreps, dirpath_labels, ngenes, genetreetype):
     lines = [" ".join(i) for i in itertools.product(nreps, dirpath_labels, ngenes, [genetreetype])]
@@ -119,8 +155,7 @@ def gen_param_file(paramfile, nreps, dirpath_labels, ngenes, genetreetype):
     return len(nreps) * len(dirpath_labels) * len(ngenes) 
     
 
-def gen_main_qsub(jobname, paramfile, nparams, quartetgenerator, method, methodparams, quartetsfile, methodcore):
-    basedir = '/home/vachasp2/phylogenetics/'
+def gen_main_qsub(jobname, paramfile, nparams, quartetgenerator, quartetsfile, methodcore):
     params = {'jobname':jobname, 
               'njobs':str(nparams/tasks_per_job),
               'tasksperjob':str(tasks_per_job),
@@ -130,8 +165,7 @@ def gen_main_qsub(jobname, paramfile, nparams, quartetgenerator, method, methodp
               'paramfile':paramfile,
               'quartetgenerator':quartetgenerator,
               'quartetscountfile':quartetsfile}
-    print params
-    params['methodcore'] = methodcore.format()
+    params['methodcore'] = methodcore.format(**params)
     return mainformatstring.format(**params)
     
 def gen_analyze_qsub(jobname):
@@ -163,7 +197,63 @@ configs = {
         'genetreetype':'truegenetrees',
         'quartetsfile':'quartetswqmc-true',
         'quartetgenerator':'quartets/quartet-controller.sh',
-},
+        'methodcore':wqmc_core
+    },
+
+    'astral-estimated': {
+        'nreps':["%02d" % i for i in range(1,51)],
+        'dirpaths':dirpaths,
+        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
+        'genetreetype':'estimatedgenetre',
+        'quartetsfile':'quartetswqmc-estimated',
+        'quartetgenerator':'quartets/quartet-controller.sh',
+        'methodcore':astral_core},
+    'astral-true': {
+        'nreps':["%02d" % i for i in range(1,51)],
+        'dirpaths':dirpaths,
+        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
+        'genetreetype':'truegenetrees',
+        'quartetsfile':'quartetswqmc-true',
+        'quartetgenerator':'quartets/quartet-controller.sh',
+        'methodcore':astral_core
+    },
+
+
+    'astral-with-st-estimated': {
+        'nreps':["%02d" % i for i in range(1,51)],
+        'dirpaths':dirpaths,
+        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
+        'genetreetype':'estimatedgenetre',
+        'quartetsfile':'quartetswqmc-estimated',
+        'quartetgenerator':'quartets/quartet-controller.sh',
+        'methodcore':astral_with_st_core},
+    'astral-with-st-true': {
+        'nreps':["%02d" % i for i in range(1,51)],
+        'dirpaths':dirpaths,
+        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
+        'genetreetype':'truegenetrees',
+        'quartetsfile':'quartetswqmc-true',
+        'quartetgenerator':'quartets/quartet-controller.sh',
+        'methodcore':astral_with_st_core
+    },
+
+    'astral-with-wqmc-estimated': {
+        'nreps':["%02d" % i for i in range(1,51)],
+        'dirpaths':dirpaths,
+        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
+        'genetreetype':'estimatedgenetre',
+        'quartetsfile':'quartetswqmc-estimated',
+        'quartetgenerator':'bash ./astral_wqmc_qgen.sh',
+        'methodcore':astral_with_wqmc_core},
+    'astral-with-wqmc-true': {
+        'nreps':["%02d" % i for i in range(1,51)],
+        'dirpaths':dirpaths,
+        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
+        'genetreetype':'truegenetrees',
+        'quartetsfile':'quartetswqmc-true',
+        'quartetgenerator':'bash ./astral_wqmc_qgen.sh',
+        'methodcore':astral_with_wqmc_core
+    },
 
     'njst-estimated': {
         'nreps':["%02d" % i for i in range(1,51)],
@@ -370,7 +460,7 @@ if __name__ == "__main__":
     config = configs[jobname]
     paramfile = jobname + ".params"
     nparams = gen_param_file(paramfile, config['nreps'], config['dirpaths'], config['ngenes'], config['genetreetype'])
-    open(jobname + '.qsub', "w").write(gen_main_qsub(jobname, paramfile, nparams, config['quartetgenerator'], config['method'], config['methodparams'], config['quartetsfile']))
+    open(jobname + '.qsub', "w").write(gen_main_qsub(jobname, paramfile, nparams, config['quartetgenerator'], config['quartetsfile'], config['methodcore']))
     open(jobname + '_analyze.qsub', "w").write(gen_analyze_qsub(jobname))
     if "--noqsub" not in sys.argv:
         os.system('qsub ' + jobname + '.qsub')
