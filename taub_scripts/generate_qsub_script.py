@@ -35,6 +35,8 @@ endindex=`expr "$startindex" "+" "{tasksperjob}" "-" "1"`
 for ind in `seq $startindex $endindex`
 do
 
+starttime=$SECONDS
+
 parameters=`cat {paramfile} | tail -n +${{ind}} | head -1`
 parameterArray=($parameters)
 
@@ -47,6 +49,7 @@ quartetfilename={scratchdir}/quartets$identifier
 fixedfilename={scratchdir}/fixed$identifier
 
 treefilename={scratchdir}/trees/trees$identifier
+timefilename={scratchdir}/timings/timing$identifier
 
 branchratefilename={scratchdir}/branchrates/missingbranchrate$identifier
 quartetscorefilename={scratchdir}/quartetscores/quartetscore$identifier
@@ -65,6 +68,8 @@ compareTrees/compareTrees.missingBranchRate $speciestreefilename $treefilename >
 module load java
 
 java -jar ASTRAL/astral.4.7.6.jar -q $treefilename -i $genetreesubsetfilename 2>&1 | tail -n1 | cut -f5 -d' ' > $quartetscorefilename
+
+echo `expr $SECONDS - $starttime` > $timefilename
 
 done
 
