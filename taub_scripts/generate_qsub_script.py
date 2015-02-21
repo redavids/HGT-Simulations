@@ -147,7 +147,11 @@ exit 0
 
 tasks_per_job=30
 
-def gen_param_file(paramfile, nreps, dirpath_labels, ngenes, genetreetype):
+def gen_param_file(paramfile, params):
+    nreps = params['nreps']
+    dirpath_labels = params['dirpaths']
+    ngenes = params['ngenes']
+    genetreetype = params['genetreetype']
     lines = [" ".join(i) for i in itertools.product(nreps, dirpath_labels, ngenes, [genetreetype])]
     s = "\n".join(lines)
     open(paramfile, "w").write(s)
@@ -155,17 +159,15 @@ def gen_param_file(paramfile, nreps, dirpath_labels, ngenes, genetreetype):
     return len(nreps) * len(dirpath_labels) * len(ngenes) 
     
 
-def gen_main_qsub(jobname, paramfile, nparams, quartetgenerator, quartetsfile, methodcore):
-    params = {'jobname':jobname, 
-              'njobs':str(nparams/tasks_per_job),
-              'tasksperjob':str(tasks_per_job),
-              'nparams':str(nparams),
-              'basedir':basedir,
-              'scratchdir':scratchdir,
-              'paramfile':paramfile,
-              'quartetgenerator':quartetgenerator,
-              'quartetscountfile':quartetsfile}
-    params['methodcore'] = methodcore.format(**params)
+def gen_main_qsub(jobname, params, nparams, paramfile):
+    params['scratchdir'] = scratchdir
+    params['basedir'] = basedir
+    params['methodparams'].update(params)
+    params['jobname'] = jobname
+    params['njobs'] = nparams
+    params['tasksperjob'] = tasks_per_job
+    params['paramfile'] = paramfile
+    params['methodcore'] = params['methodcore'].format(**(params['methodparams']))
     return mainformatstring.format(**params)
     
 def gen_analyze_qsub(jobname):
@@ -180,6 +182,7 @@ dirpaths = ['hgt-data/model.50.2000000.0.000001.0 0',
                     'hgt-data/model.50.2000000.0.000001.0.0000002 20',
                     'hgt-data/model.50.2000000.0.000001.0.0000005 50']
 
+
 #names must not have underscores!
 configs = {
     'wqmc-estimated': {
@@ -187,17 +190,22 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'quartets/quartet-controller.sh',
-        'methodcore':wqmc_core},
+        'methodcore':wqmc_core,
+        'methodparams':{
+            'quartetscountfile':'quartetswqmc-estimated',
+            'quartetgenerator':'quartets/quartet-controller.sh'
+        }
+    },
     'wqmc-true': {
         'nreps':["%02d" % i for i in range(1,51)],
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'quartets/quartet-controller.sh',
-        'methodcore':wqmc_core
+        'methodcore':wqmc_core,
+        'methodparams':{
+            'quartetscountfile':'quartetswqmc-true',
+            'quartetgenerator':'quartets/quartet-controller.sh'
+        }
     },
 
     'astral-estimated': {
@@ -205,17 +213,16 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'quartets/quartet-controller.sh',
-        'methodcore':astral_core},
+        'methodcore':astral_core,
+        'mtehodparams':{}
+    },
     'astral-true': {
         'nreps':["%02d" % i for i in range(1,51)],
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'quartets/quartet-controller.sh',
-        'methodcore':astral_core
+        'methodcore':astral_core,
+        'methodparams':{}
     },
 
 
@@ -224,17 +231,16 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'quartets/quartet-controller.sh',
-        'methodcore':astral_with_st_core},
+        'methodcore':astral_with_st_core,
+        'methodparams':{}
+    },
     'astral-with-st-true': {
         'nreps':["%02d" % i for i in range(1,51)],
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'quartets/quartet-controller.sh',
-        'methodcore':astral_with_st_core
+        'methodcore':astral_with_st_core,
+        'methodparams':{}
     },
 
     'astral-with-wqmc-estimated': {
@@ -242,17 +248,23 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'bash ./astral_wqmc_qgen.sh',
-        'methodcore':astral_with_wqmc_core},
+        'methodcore':astral_with_wqmc_core,
+        'methodparams':{
+            'quartetgenerator':'bash ./astral_wqmc_qgen.sh',
+            'quartetscountfile':'quartetswqmc-estimated'
+        }
+    },
+
     'astral-with-wqmc-true': {
         'nreps':["%02d" % i for i in range(1,51)],
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'bash ./astral_wqmc_qgen.sh',
-        'methodcore':astral_with_wqmc_core
+        'methodcore':astral_with_wqmc_core,
+        'methodparams': {
+            'quartetscountfile':'quartetswqmc-true',
+            'quartetgenerator':'bash ./astral_wqmc_qgen.sh'
+        }
     },
 
     'njst-estimated': {
@@ -260,17 +272,17 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
-        'quartetsfile':None,
-        'quartetgenerator':None,
-        'methodcore':njst_core},
+        'methodcore':njst_core,
+        'methodparams':{}
+    },
     'njst-true': {
         'nreps':["%02d" % i for i in range(1,51)],
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
-        'quartetsfile':None,
-        'quartetgenerator':None,
-        'methodcore':njst_core},
+        'methodcore':njst_core,
+        'methodparams':{}
+    },
 
 
     'wqmc-invariants': {
@@ -278,189 +290,73 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'bash ./invariant_qgen.sh 1',
-        'methodcore':wqmc_core},
+        'methodcore':wqmc_core,
+        'methodparams':{
+            'quartetscountfile':'quartetswqmc-estimated',
+            'quartetgenerator':'bash ./invariant_qgen.sh 1',
+        }
+    },
     'wqmc-invariants-true': {
         'nreps':["%02d" % i for i in range(1,51)],
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'bash ./invariant_qgen.sh 1',
-        'methodcore':wqmc_core},
-    'wqmc-invariants-c01': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'bash ./invariant_qgen.sh 0.1',
-        'methodcore':wqmc_core},
-    'wqmc-invariants-c01-true': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'bash ./invariant_qgen.sh 0.1',
-        'methodcore':wqmc_core},
-    'wqmc-invariants-c05': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'bash ./invariant_qgen.sh 0.5',
-        'methodcore':wqmc_core},
-    'wqmc-invariants-c05-true': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'bash ./invariant_qgen.sh 0.5',
-        'methodcore':wqmc_core},
-    'wqmc-invariants-c2': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'bash ./invariant_qgen.sh 2',
-        'methodcore':wqmc_core},
-    'wqmc-invariants-c2-true': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'bash ./invariant_qgen.sh 2',
-        'methodcore':wqmc_core},
-    'wqmc-invariants-c4': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'bash ./invariant_qgen.sh 4',
-        'methodcore':wqmc_core},
-    'wqmc-invariants-c4-true': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'bash ./invariant_qgen.sh 4',
-        'methodcore':wqmc_core},
-    'wqmc-invariants-c10': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'bash ./invariant_qgen.sh 10',
-        'methodcore':wqmc_core},
-    'wqmc-invariants-c10-true': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'bash ./invariant_qgen.sh 10',
-        'methodcore':wqmc_core},
+        'methodcore':wqmc_core,
+        'methodparams':{
+            'quartetscountfile':'quartetswqmc-true',
+            'quartetgenerator':'bash ./invariant_qgen.sh 1'
+        }
+    },
+
     'wqmc-dominant': {
         'nreps':["%02d" % i for i in range(1,51)],
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'bash ./dominant_qgen.sh',
-        'methodcore':wqmc_core},
+        'methodcore':wqmc_core,
+        'methodparams':{
+            'quartetscountfile':'quartetswqmc-estimated',
+            'quartetgenerator':'bash ./dominant_qgen.sh',
+        }
+    },
     'wqmc-dominant-true': {
         'nreps':["%02d" % i for i in range(1,51)],
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'bash ./dominant_qgen.sh',
-        'methodcore':wqmc_core},
+        'methodcore':wqmc_core,
+        'methodparams': {
+            'quartetscountfile':'quartetswqmc-true',
+            'quartetgenerator':'bash ./dominant_qgen.sh',
+        }
+    },
 
-    'wqmc-sparsesample-01p': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'bash ./sparse_sample_qgen.sh 0.01',
-        'methodcore':wqmc_core},
-    'wqmc-sparsesample-true-01p': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'bash ./sparse_sample_qgen.sh 0.01',
-        'methodcore':wqmc_core},
-
-    'wqmc-sparsesample-10p': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'bash ./sparse_sample_qgen.sh 0.1',
-        'methodcore':wqmc_core},
-    'wqmc-sparsesample-true-10p': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'bash ./sparse_sample_qgen.sh 0.1',
-        'methodcore':wqmc_core},
-
-    'wqmc-sparsesample-25p': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'bash ./sparse_sample_qgen.sh 0.25',
-        'methodcore':wqmc_core},
-    'wqmc-sparsesample-true-25p': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'bash ./sparse_sample_qgen.sh 0.25',
-        'methodcore':wqmc_core},
-
-    'wqmc-sparsesample-50p': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'estimatedgenetre',
-        'quartetsfile':'quartetswqmc-estimated',
-        'quartetgenerator':'bash ./sparse_sample_qgen.sh 0.5',
-        'methodcore':wqmc_core},
-    'wqmc-sparsesample-true-50p': {
-        'nreps':["%02d" % i for i in range(1,51)],
-        'dirpaths':dirpaths,
-        'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
-        'genetreetype':'truegenetrees',
-        'quartetsfile':'quartetswqmc-true',
-        'quartetgenerator':'bash ./sparse_sample_qgen.sh 0.5',
-        'methodcore':wqmc_core},
 }
+
+for c in [0.1, 0.5, 2, 4, 10]:
+    conf = configs['wqmc-invariants'].copy()
+    conf['quartetgenerator'] = 'bash ./invariant_qgen.sh ' + str(c)
+    configs['wqmc-invariants-c'+str(c)] = conf
+    conf = configs['wqmc-invariants-true'].copy()
+    conf['quartetgenerator'] = 'bash ./invariant_qgen.sh ' + str(c)
+    configs['wqmc-invariants-c'+str(c)+'-true'] = conf
+
+
+for p in [0.01, 0.1, 0.25, 0.5]:
+    conf = configs['wqmc-estimated'].copy()
+    conf['quartetgenerator'] = 'bash ./sparse_sample_qgen.sh ' + str(p)
+    configs['wqmc-sparsesample-'+str(p)+'p'] = conf
+    conf = configs['wqmc-true'].copy()
+    conf['quartetgenerator'] = 'bash ./sparse_sample_qgen.sh ' + str(p)
+    configs['wqmc-sparsesample-true-'+str(p)+'p'] = conf
+
 
 if __name__ == "__main__":
     jobname = sys.argv[1]
     config = configs[jobname]
     paramfile = jobname + ".params"
-    nparams = gen_param_file(paramfile, config['nreps'], config['dirpaths'], config['ngenes'], config['genetreetype'])
-    open(jobname + '.qsub', "w").write(gen_main_qsub(jobname, paramfile, nparams, config['quartetgenerator'], config['quartetsfile'], config['methodcore']))
+    nparams = gen_param_file(paramfile, config)
+    open(jobname + '.qsub', "w").write(gen_main_qsub(jobname, config, nparams, paramfile))
     open(jobname + '_analyze.qsub', "w").write(gen_analyze_qsub(jobname))
     if "--noqsub" not in sys.argv:
         os.system('qsub ' + jobname + '.qsub')
