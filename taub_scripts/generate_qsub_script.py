@@ -87,6 +87,8 @@ wqmc_core = """
 
 {quartetgenerator} $genetreesubsetfilename $quartetfilename {scratchdir}/{quartetscountfile}_${{parameterArray[2]}}_${{parameterArray[0]}}_${{parameterArray[3]}}
 
+#this converts quartets in quartet-controller.sh format to what wQMC wants
+
 cat $quartetfilename | sed s/"(("//g | sed s/"),("/"|"/g | sed s/")); "/":"/g | sed '/|/!d' > $fixedfilename
 
 ./wQMC/max-cut-tree qrtt=$fixedfilename weights=on otre=$treefilename
