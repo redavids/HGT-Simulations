@@ -3,8 +3,8 @@ import itertools
 import argparse
 import os
 
-basedir='/home/vachasp2/phylogenetics'
-scratchdir='/home/vachasp2/scratch'
+basedir='/home/redavid2/phylogenetics'
+scratchdir='/home/redavid2/scratch'
 
 mainformatstring="""
 # declare a name for this job to be sample_job
@@ -20,12 +20,14 @@ mainformatstring="""
 #PBS -q cse
 #PBS -l naccesspolicy=singleuser
 # specify your email address
-#PBS -M me@pranj.al
+#PBS -M redavids@ncsu.edu
 # By default, PBS scripts execute in your home directory, not the 
 # directory from which they were submitted. The following line 
 # places you in the directory from which the job was submitted.  
 # run the program
 #PBS -t 1-{njobs}
+
+#env var for pbs_arrayid is 1 the first time 2 second, total number of tasks divided by tasks per ex reads first 30=tasks/job variable  inputs of param file
 
 cd {basedir}
 
@@ -34,6 +36,8 @@ endindex=`expr "$startindex" "+" "{tasksperjob}" "-" "1"`
 
 for ind in `seq $startindex $endindex`
 do
+
+#secs is variable in every bash script, double quotes {{ means is bash variable, won't string format it
 
 starttime=$SECONDS
 
@@ -134,12 +138,13 @@ collateformatstring="""
 # mail is sent to you when the job starts and when it terminates or aborts
 #PBS -m bea
 # specify your email address
-#PBS -M me@pranj.al
+#PBS -M redavids@ncsu.edu
 #PBS -W {jobname}
 # By default, PBS scripts execute in your home directory, not the 
 # directory from which they were submitted. The following line 
 # places you in the directory from which the job was submitted.  
 # run the program
+
 
 cd {basedir}
 
@@ -150,7 +155,9 @@ python collate_branchrates.py {scratchdir}/branchrates/ > {jobname}.out
 exit 0
 """
 
-tasks_per_job=30
+#tasks per job when > 1 when you have more than 1000 jobs only
+
+tasks_per_job=1
 
 def gen_param_file(paramfile, params):
     nreps = params['nreps']
@@ -180,15 +187,18 @@ def gen_analyze_qsub(jobname):
                                          'basedir':basedir,
                                          'scratchdir':scratchdir})
 
-dirpaths = ['hgt-data/model.50.2000000.0.000001.0 0',    
-                    'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    'hgt-data/model.50.2000000.0.000001.0.00000002 2',
-                    'hgt-data/model.50.2000000.0.000001.0.0000002 20',
-                    'hgt-data/model.50.2000000.0.000001.0.0000005 50']
+#dirpaths start from current directory to the directory containing data for experiment, followed by a short name
+#Ruth was testing this with an older experiment so she commented out as was not necessary to re run all of them 
+dirpaths = ['data/model.50.2000000.0.000001.0 0'] #,    
+                    #'hgt-data/model.50.2000000.0.000001.0.000000002 02',
+                    #'hgt-data/model.50.2000000.0.000001.0.000000005 05',
+                    #'hgt-data/model.50.2000000.0.000001.0.00000002 2',
+                    #'hgt-data/model.50.2000000.0.000001.0.0000002 20',
+                    #'hgt-data/model.50.2000000.0.000001.0.0000005 50']
 
 
 #names must not have underscores!
+
 configs = {
     'wqmc-estimated': {
         'nreps':["%02d" % i for i in range(1,51)],
