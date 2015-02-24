@@ -25,7 +25,7 @@ mainformatstring="""
 # directory from which they were submitted. The following line 
 # places you in the directory from which the job was submitted.  
 # run the program
-#PBS -t 1-{njobs}
+#PBS -t 0-{njobs}
 
 cd {basedir}
 
