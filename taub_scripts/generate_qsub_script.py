@@ -45,9 +45,10 @@ datafolder=${{parameterArray[1]}}
 shortname=${{parameterArray[2]}}
 ngenes=${{parameterArray[3]}}
 genetree=${{parameterArray[4]}}
+speciestree=${{parameterArray[5]}}
 
 genetreefilename=${{datafolder}}/${{replicate}}/${{genetree}}
-speciestreefilename=${{datafolder}}/${{replicate}}/s_tree.trees
+speciestreefilename=${{datafolder}}/${{replicate}}/${{speciestree}}
 
 identifier={jobname}_${{shortname}}_${{replicate}}_${{ngenes}}
 
@@ -162,7 +163,8 @@ def gen_param_file(paramfile, params):
     dirpath_labels = params['dirpaths']
     ngenes = params['ngenes']
     genetreetype = params['genetreetype']
-    lines = [" ".join(i) for i in itertools.product(nreps, dirpath_labels, ngenes, [genetreetype])]
+    speciestreetype = params['speciestreetype']
+    lines = [" ".join(i) for i in itertools.product(nreps, dirpath_labels, ngenes, [genetreetype], [speciestreetype])]
     s = "\n".join(lines)
     open(paramfile, "w").write(s)
     print len(nreps) * len(dirpath_labels) * len(ngenes) 
@@ -200,6 +202,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
+        'speciestreetype':'s_tree.trees',
         'methodcore':wqmc_core,
         'methodparams':{
             'quartetscountfile':'quartetswqmc-estimated',
@@ -211,6 +214,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
+        'speciestreetype':'s_tree.trees',
         'methodcore':wqmc_core,
         'methodparams':{
             'quartetscountfile':'quartetswqmc-true',
@@ -223,6 +227,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
+        'speciestreetype':'s_tree.trees',
         'methodcore':astral_core,
         'mtehodparams':{}
     },
@@ -231,6 +236,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
+        'speciestreetype':'s_tree.trees',
         'methodcore':astral_core,
         'methodparams':{}
     },
@@ -241,6 +247,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
+        'speciestreetype':'s_tree.trees',
         'methodcore':astral_with_st_core,
         'methodparams':{}
     },
@@ -249,6 +256,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
+        'speciestreetype':'s_tree.trees',
         'methodcore':astral_with_st_core,
         'methodparams':{}
     },
@@ -258,6 +266,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
+        'speciestreetype':'s_tree.trees',
         'methodcore':astral_with_wqmc_core,
         'methodparams':{
             'quartetgenerator':'bash ./astral_wqmc_qgen.sh',
@@ -270,6 +279,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
+        'speciestreetype':'s_tree.trees',
         'methodcore':astral_with_wqmc_core,
         'methodparams': {
             'quartetscountfile':'quartetswqmc-true',
@@ -282,6 +292,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
+        'speciestreetype':'s_tree.trees',
         'methodcore':njst_core,
         'methodparams':{}
     },
@@ -290,6 +301,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
+        'speciestreetype':'s_tree.trees',
         'methodcore':njst_core,
         'methodparams':{}
     },
@@ -300,6 +312,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
+        'speciestreetype':'s_tree.trees',
         'methodcore':wqmc_core,
         'methodparams':{
             'quartetscountfile':'quartetswqmc-estimated',
@@ -311,6 +324,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
+        'speciestreetype':'s_tree.trees',
         'methodcore':wqmc_core,
         'methodparams':{
             'quartetscountfile':'quartetswqmc-true',
@@ -323,6 +337,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'estimatedgenetre',
+        'speciestreetype':'s_tree.trees',
         'methodcore':wqmc_core,
         'methodparams':{
             'quartetscountfile':'quartetswqmc-estimated',
@@ -334,6 +349,7 @@ configs = {
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
+        'speciestreetype':'s_tree.trees',
         'methodcore':wqmc_core,
         'methodparams': {
             'quartetscountfile':'quartetswqmc-true',
