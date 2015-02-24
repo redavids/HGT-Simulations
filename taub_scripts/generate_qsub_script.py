@@ -40,9 +40,16 @@ starttime=$SECONDS
 parameters=`cat {paramfile} | tail -n +${{ind}} | head -1`
 parameterArray=($parameters)
 
-identifier={jobname}_${{parameterArray[2]}}_${{parameterArray[0]}}_${{parameterArray[3]}}
+replicate=${{parameterArray[0]}}
+datafolder=${{parameterArray[1]}}
+shortname=${{parameterArray[2]}}
+ngenes=${{parameterArray[3]}}
+genetree=${{parameterArray[4]}}
 
-genetreefilename=${{parameterArray[1]}}/${{parameterArray[0]}}/${{parameterArray[4]}}
+genetreefilename=${{datafolder}}/${{replicate}}/${{genetree}}
+speciestreefilename=${{datafolder}}/${{replicate}}/s_tree.trees
+
+identifier={jobname}_${{shortname}}_${{replicate}}_${{ngenes}}
 
 quartetfilename={scratchdir}/quartets$identifier
 
@@ -57,9 +64,7 @@ quartetscorefilename={scratchdir}/quartetscores/quartetscore$identifier
 
 genetreesubsetfilename={scratchdir}/genetreesubset$identifier
 
-speciestreefilename=${{parameterArray[1]}}/${{parameterArray[0]}}/s_tree.trees
-
-head $genetreefilename -n${{parameterArray[3]}} > $genetreesubsetfilename
+head $genetreefilename -n${{ngenes}} > $genetreesubsetfilename
 
 {methodcore}
 
@@ -78,7 +83,7 @@ exit 0
 
 wqmc_core = """
 
-{quartetgenerator} $genetreesubsetfilename $quartetfilename {scratchdir}/{quartetscountfile}_${{parameterArray[2]}}_${{parameterArray[0]}}_${{parameterArray[3]}}
+{quartetgenerator} $genetreesubsetfilename $quartetfilename {scratchdir}/{quartetscountfile}_${{shortname}}_${{replicate}}_${{ngenes}}
 
 cat $quartetfilename | sed s/"(("//g | sed s/"),("/"|"/g | sed s/")); "/":"/g | sed '/|/!d' > $fixedfilename
 
@@ -112,7 +117,7 @@ java -jar ./ASTRAL/astral.4.7.6.jar -i $genetreesubsetfilename -e $speciestreefi
 
 astral_with_wqmc_core = """
 
-{quartetgenerator} $genetreesubsetfilename $quartetfilename {scratchdir}/{quartetscountfile}_${{parameterArray[2]}}_${{parameterArray[0]}}_${{parameterArray[3]}}
+{quartetgenerator} $genetreesubsetfilename $quartetfilename {scratchdir}/{quartetscountfile}_${{shortname}}_${{replicate}}_${{ngenes}}
 
 cat $quartetfilename | sed s/"(("//g | sed s/"),("/"|"/g | sed s/")); "/":"/g | sed '/|/!d' > $fixedfilename
 
