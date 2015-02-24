@@ -79,6 +79,9 @@ done
 
 exit 0
 """
+#everything in single {} is parameter written by python into script, but $or {{}}
+#are bash variables that vary across iterations of qsub file based on parameters 
+#in the param file
 
 wqmc_core = """
 
@@ -198,6 +201,11 @@ dirpaths = ['data/model.50.2000000.0.000001.0 0'] #,
 
 
 #names must not have underscores!
+
+#comments for configs
+#["%02d" % i for i in range(1,51)] is a list of strings that corresponds to replicates in the folder.  If you evaluated it it gives you 
+#01 02 03...09 10 11 .. 50
+#ngenes single list entry with a "huge" number (bigger than lines in file) and will always just use whole file
 
 configs = {
     'wqmc-estimated': {
