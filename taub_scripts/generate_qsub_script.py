@@ -86,7 +86,7 @@ wqmc_core = """
 
 cat $quartetfilename | sed s/"(("//g | sed s/"),("/"|"/g | sed s/")); "/":"/g | sed '/|/!d' > $fixedfilename
 
-./wQMC/max-cut-tree qrtt=$fixedfilename weights=on otre=$treefilename
+{wqmcexe} qrtt=$fixedfilename weights=on otre=$treefilename
 
 """
 
@@ -94,7 +94,7 @@ njst_core = """
 
 module load R/3.1.2
 
-./njst-package/njst $genetreesubsetfilename $treefilename
+{njstexe} $genetreesubsetfilename $treefilename
 
 """
 
@@ -102,7 +102,7 @@ astral_core = """
 
 module load java
 
-java -jar ./ASTRAL/astral.4.7.6.jar -i $genetreesubsetfilename -o $treefilename
+{astralexe} -i $genetreesubsetfilename -o $treefilename
 
 """
 
@@ -110,7 +110,7 @@ astral_with_st_core = """
 
 module load java
 
-java -jar ./ASTRAL/astral.4.7.6.jar -i $genetreesubsetfilename -e $speciestreefilename -o $treefilename
+{astralexe} -i $genetreesubsetfilename -e $speciestreefilename -o $treefilename
 
 """
 
@@ -120,11 +120,11 @@ astral_with_wqmc_core = """
 
 cat $quartetfilename | sed s/"(("//g | sed s/"),("/"|"/g | sed s/")); "/":"/g | sed '/|/!d' > $fixedfilename
 
-./wQMC/max-cut-tree qrtt=$fixedfilename weights=on otre=$treefilename-initial
+{wqmcexe} qrtt=$fixedfilename weights=on otre=$treefilename-initial
 
 module load java
 
-java -jar ./ASTRAL/astral.4.7.6.jar -i $genetreesubsetfilename -e $treefilename-initial -o $treefilename
+{astralexe} -i $genetreesubsetfilename -e $treefilename-initial -o $treefilename
 
 """
 
@@ -171,15 +171,14 @@ def gen_param_file(paramfile, params):
 
 def gen_main_qsub(jobname, methodname, datasetname, method, dataset, nparams, paramfile):
     params = {}
-    params['scratchdir'] = scratchdir
-    params['basedir'] = basedir
-    params['email'] = email
     params['jobname'] = jobname
     params['method'] = methodname
     params['dataset'] = datasetname
     params['njobs'] = nparams/tasks_per_job
     params['tasksperjob'] = tasks_per_job
     params['paramfile'] = paramfile
+    
+    params.update(globalparams)
     params.update(method)
     params.update(method['params'])
     params.update(dataset)
@@ -189,10 +188,9 @@ def gen_main_qsub(jobname, methodname, datasetname, method, dataset, nparams, pa
     return mainformatstring.format(**params)
     
 def gen_analyze_qsub(jobname):
-    return collateformatstring.format(**{'jobname':jobname,
-                                         'basedir':basedir,
-                                         'scratchdir':scratchdir,
-                                         'email':email})
+    params = {'jobname':jobname}
+    params.update(globalparams)
+    return collateformatstring.format(**params)
 
 dirpaths = ['hgt-data/model.50.2000000.0.000001.0 0',    
                     'hgt-data/model.50.2000000.0.000001.0.000000002 02',
@@ -224,12 +222,13 @@ methods = {
         'core':wqmc_core,
         'params':{
             'quartetscountfile':'quartetswqmc',
-            'quartetgenerator':'quartets/quartet-controller.sh'
+            'quartetgenerator':'quartets/quartet-controller.sh',
         }
     },
     'astral' : {
         'core':astral_core,
-        'mtehodparams':{}
+        'methodparams':{
+        }
     },
     'astral-with-st' : {
         'core':astral_with_st_core,
