@@ -4,7 +4,7 @@ globalparams = {
     'scratchdir':'/home/vachasp2/scratch/',
     'email':'me@pranj.al',
     
-    'comparer':'/home/vachasp2/compareTrees/compareTrees.missingBranchRate'
+    'comparer':'/home/vachasp2/compareTrees/compareTrees.missingBranchRate',
 
     'wqmcexe':'/home/vachasp2/wQMC/max-cut-tree',
     'astralexe':'java -jar /home/vachasp2/ASTRAL/astral.4.7.6.jar',
