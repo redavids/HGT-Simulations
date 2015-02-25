@@ -9,3 +9,10 @@ mkdir ~/scratch/trees
 mkdir ~/scratch/branchrates
 mkdir ~/scratch/quartetscores
 mkdir ~/scratch/timings
+
+#make quartets script
+cd quartets
+cd thesis
+make QUARTETS=1 CONTRACT_NUM=20000
+cd ..
+cp thesis/quart_bin triplets.soda2103

@@ -2,9 +2,7 @@ import sys
 import itertools
 import argparse
 import os
-
-basedir='/home/vachasp2/phylogenetics'
-scratchdir='/home/vachasp2/scratch'
+from settings import *
 
 mainformatstring="""
 # declare a name for this job to be sample_job
@@ -20,7 +18,7 @@ mainformatstring="""
 #PBS -q cse
 #PBS -l naccesspolicy=singleuser
 # specify your email address
-#PBS -M me@pranj.al
+#PBS -M {email}
 # By default, PBS scripts execute in your home directory, not the 
 # directory from which they were submitted. The following line 
 # places you in the directory from which the job was submitted.  
@@ -140,7 +138,7 @@ collateformatstring="""
 # mail is sent to you when the job starts and when it terminates or aborts
 #PBS -m bea
 # specify your email address
-#PBS -M me@pranj.al
+#PBS -M {email}
 #PBS -W {jobname}
 # By default, PBS scripts execute in your home directory, not the 
 # directory from which they were submitted. The following line 
@@ -175,6 +173,7 @@ def gen_main_qsub(jobname, methodname, datasetname, method, dataset, nparams, pa
     params = {}
     params['scratchdir'] = scratchdir
     params['basedir'] = basedir
+    params['email'] = email
     params['jobname'] = jobname
     params['method'] = methodname
     params['dataset'] = datasetname
@@ -192,7 +191,8 @@ def gen_main_qsub(jobname, methodname, datasetname, method, dataset, nparams, pa
 def gen_analyze_qsub(jobname):
     return collateformatstring.format(**{'jobname':jobname,
                                          'basedir':basedir,
-                                         'scratchdir':scratchdir})
+                                         'scratchdir':scratchdir,
+                                         'email':email})
 
 dirpaths = ['hgt-data/model.50.2000000.0.000001.0 0',    
                     'hgt-data/model.50.2000000.0.000001.0.000000002 02',
