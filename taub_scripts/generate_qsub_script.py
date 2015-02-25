@@ -67,11 +67,11 @@ head $genetreefilename -n${{ngenes}} > $genetreesubsetfilename
 
 {methodcore}
 
-compareTrees/compareTrees.missingBranchRate $speciestreefilename $treefilename > $branchratefilename
+{comparer} $speciestreefilename $treefilename > $branchratefilename
 
 module load java
 
-java -jar ASTRAL/astral.4.7.6.jar -q $treefilename -i $genetreesubsetfilename 2>&1 | tail -n1 | cut -f5 -d' ' > $quartetscorefilename
+{astralexe} -q $treefilename -i $genetreesubsetfilename 2>&1 | tail -n1 | cut -f5 -d' ' > $quartetscorefilename
 
 echo `expr $SECONDS - $starttime` > $timefilename
 
