@@ -178,7 +178,7 @@ def gen_main_qsub(jobname, methodname, datasetname, method, dataset, nparams, pa
     params['jobname'] = jobname
     params['method'] = methodname
     params['dataset'] = datasetname
-    params['njobs'] = nparams
+    params['njobs'] = nparams/tasks_per_job
     params['tasksperjob'] = tasks_per_job
     params['paramfile'] = paramfile
     params.update(method)
