@@ -138,7 +138,7 @@ def sort_files(folder):
 
     return d, runs_averaged, d_raw, runs
 
-def printtable(methods_subset, hgtrates, genecounts, runs, d, separator=' '):
+def printtable(methods_subset, hgtrates, genecounts, runs, d, separator=' ', endcharacter = ''):
     print hgtrates
     print genecounts
     for m in methods_subset:
@@ -151,10 +151,10 @@ def printtable(methods_subset, hgtrates, genecounts, runs, d, separator=' '):
             return "-"
     
     for hgtrate in hgtrates:
-        print "HGT"+separator+ "ngenes", separator.join([i.replace("missingbranchrate","") for i in methods_subset])                
+        print "HGT"+separator+ "ngenes", separator.join([i.replace("missingbranchrate","") for i in methods_subset]) + endcharacter
         for ngenes in sorted([int(i) for i in genecounts]):            
             try:
-                print str(hgtrate) + separator + str(ngenes) + separator + separator.join([valordash(d, m, str(hgtrate), str(ngenes)) for m in methods_subset]) 
+                print str(hgtrate) + separator + str(ngenes) + separator + separator.join([valordash(d, m, str(hgtrate), str(ngenes)) for m in methods_subset]) + endcharacter
             except ValueError:
                 print "ERROR", [(100 * d[m][str(hgtrate)][str(ngenes)]) for m in methods_subset]
                 pass
@@ -277,14 +277,14 @@ def printdifferences(methods_subset, hgtrates, genecounts, runs, d, separator=' 
 
 def analyze(folder):
     d, runs, draw, runsraw = sort_files(folder)
-    print runs
+    #print runs
     for experiment in sorted(d.keys()):
         print experiment
         d1 = d[experiment]
         for hgt in sorted(d1.keys()):
             d2 = d1[hgt]
             for ngenes in sorted([int(i) for i in d2.keys()]):
-                print "|" + hgt + "\t|" + str(ngenes) + "\t|" + str(np.average(d2[str(ngenes)])) + "\t|" + str(np.std(d2[str(ngenes)])) + "\t|" #+ str(len(d2[str(ngenes)])) + "\t|"
+                print "|" + hgt + "\t|" + str(ngenes) + "\t|" + str(np.average(d2[str(ngenes)])) + "\t|" + str(np.std(d2[str(ngenes)])) + "\t|" + str(len(d2[str(ngenes)])) + "\t|"
                 pass
         print 
     hgtrates = set([i.hgt for i in runs])
@@ -320,12 +320,14 @@ def analyze(folder):
 
 #    printtable(methods_quartetscores, hgtrates, genecounts, runs, d)
 
-    printdifferences(methods_quartetscores_true, hgtrates, genecounts, runsraw, draw, '|', '|', '|')
-    print 
-    print
-    printdifferences(methods_quartetscores_estimated, hgtrates, genecounts, runsraw, draw, '|', '|', '|')
-    print 
-    print    
+    #printdifferences(methods_quartetscores_true, hgtrates, genecounts, runsraw, draw, '|', '|', '|')
+    #print 
+    #print
+    #printdifferences(methods_quartetscores_estimated, hgtrates, genecounts, runsraw, draw, '|', '|', '|')
+    #print 
+    #print    
+    printtable(['missingbranchrateastral-true'], hgtrates, genecounts, runs, d, ' & ', ' \\\\')
+    #printtable(['astral', 'missingbranchratewqmc-estimated', 'missingbranchratewqmc-invariants',  'missingbranchratenjst-estimated', 'missingbranchrateastral-with-st-estimated',  'missingbranchrateastral-with-wqmc-estimated', 'astral-true', 'missingbranchratewqmc-true', 'missingbranchratewqmc-invariants-true', 'missingbranchratenjst-true','missingbranchrateastral-with-st-true',  'missingbranchrateastral-with-wqmc-true', 'missingbranchrateastral-true'])
 
 if __name__ == "__main__":
     folder = sys.argv[1]

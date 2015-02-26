@@ -69,6 +69,7 @@ head $genetreefilename -n${{parameterArray[3]}} > $genetreesubsetfilename
 
 compareTrees/compareTrees.missingBranchRate $speciestreefilename $treefilename > $branchratefilename
 
+
 module load java
 
 java -jar ASTRAL/astral.4.7.6.jar -q $treefilename -i $genetreesubsetfilename 2>&1 | tail -n1 | cut -f5 -d' ' > $quartetscorefilename
@@ -80,8 +81,7 @@ done
 exit 0
 """
 #everything in single {} is parameter written by python into script, but $or {{}}
-#are bash variables that vary across iterations of qsub file based on parameters 
-#in the param file
+#are bash variables that vary across iterations of qsub file based on parameters in the param file
 
 wqmc_core = """
 
@@ -150,7 +150,6 @@ collateformatstring="""
 # places you in the directory from which the job was submitted.  
 # run the program
 
-
 cd {basedir}
 
 module load python/2.7.8
@@ -162,7 +161,7 @@ exit 0
 
 #tasks per job when > 1 when you have more than 1000 jobs only
 
-tasks_per_job=1
+tasks_per_job=30
 
 def gen_param_file(paramfile, params):
     nreps = params['nreps']
@@ -181,7 +180,7 @@ def gen_main_qsub(jobname, params, nparams, paramfile):
     params['basedir'] = basedir
     params['methodparams'].update(params)
     params['jobname'] = jobname
-    params['njobs'] = nparams
+    params['njobs'] = nparams/tasks_per_job
     params['tasksperjob'] = tasks_per_job
     params['paramfile'] = paramfile
     params['methodcore'] = params['methodcore'].format(**(params['methodparams']))
@@ -192,16 +191,46 @@ def gen_analyze_qsub(jobname):
                                          'basedir':basedir,
                                          'scratchdir':scratchdir})
 
-#dirpaths start from current directory to the directory containing data for experiment, followed by a short name
-#Ruth was testing this with an older experiment so she commented out as was not necessary to re run all of them 
-dirpaths = ['data/model.50.2000000.0.000001.0 0'] #,    
-                    #'hgt-data/model.50.2000000.0.000001.0.000000002 02',
-                    #'hgt-data/model.50.2000000.0.000001.0.000000005 05',
-                    #'hgt-data/model.50.2000000.0.000001.0.00000002 2',
-                    #'hgt-data/model.50.2000000.0.000001.0.0000002 20',
-                    #'hgt-data/model.50.2000000.0.000001.0.0000005 50']
-
-
+dirpaths = ['data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise0 50.0',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise500 50.500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise1000 50.1000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise1500 50.1500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise2000 50.2000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise2500 50.2500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise3000 50.3000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise3500 50.3500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise4000 50.4000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise4500 50.4500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise5000 50.5000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise5500 50.5500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw50/noise6000 50.6000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise0 100.0',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise500 100.500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise1000 100.1000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise1500 100.1500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise2000 100.2000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise2500 100.2500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise3000 100.3000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise3500 100.3500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise4000 100.4000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise4500 100.4500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise5000 100.5000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise5500 100.5500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw100/noise6000 100.6000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise0 150.0',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise500 150.500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise1000 150.1000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise1500 150.1500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise2000 150.2000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise2500 150.2500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise3000 150.3000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise3500 150.3500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise4000 150.4000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise4500 150.4500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise5000 150.5000',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise5500 150.5500',
+'data/RuthPerGeneNormSimulatedDatasets.single.highway/hw150/noise6000 150.6000']
+           
 #names must not have underscores!
 
 #comments for configs
@@ -242,7 +271,8 @@ configs = {
         'mtehodparams':{}
     },
     'astral-true': {
-        'nreps':["%02d" % i for i in range(1,51)],
+	'nreps':[ str(i+1) for i in range(50)],
+        #'nreps':["%02d" % i for i in ange(1,51)],
         'dirpaths':dirpaths,
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
