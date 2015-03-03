@@ -44,7 +44,7 @@ def sort_files(folder):
 
     return d, runs_averaged, d_raw, runs
 
-def printtable(methods_subset, hgtrates, genecounts, runs, d, separator=' ', endcharacter = ''):
+def printtable(methods_subset, hgtrates, genecounts, runs, d, separator=' ', endcharacter = ''): 
     print hgtrates
     print genecounts
     for m in methods_subset:
@@ -68,6 +68,11 @@ def printtable(methods_subset, hgtrates, genecounts, runs, d, separator=' ', end
         print
         print
 
+
+def printraw(methods_subset, hgtrates, genecounts, runs, d, separator=',', endcharacter = ''): 
+    print 'experiment,hgtrate,ngenes,index,missingbranchrate'
+    for r in runs:
+        print separator.join([r.experiment, r.hgt, r.ngenes, r.index, r.value])
 
 def printdifferences(methods_subset, hgtrates, genecounts, runs, d, separator=' ', opener='', closer=''):
     print hgtrates
@@ -197,6 +202,9 @@ def analyze(folder):
     methods_true = sorted(list(set([i for i in methods if "true" in i])))
     methods_estimated = sorted(list(set([i for i in methods if "true" not in i])))
     methods_inv_true = sorted(list(set([i for i in methods_true if "invariants" in i])))
+
+    printraw(methods, hgtrates, genecounts, runsraw, draw, separator=',', endcharacter = ''): 
+
 #    methods_inv_true = [methods_inv_true[-1]] + methods_inv_true[:-1]
 #    methods_inv_estimated = sorted(list(set([i for i in methods_estimated if "invariants" in i])))
 
