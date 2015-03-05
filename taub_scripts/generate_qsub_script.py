@@ -54,20 +54,23 @@ outputfolder={scratchdir}/{dataset}/{method}/
 mkdir -p $outputfolder
 mkdir -p $outputfolder/quartets
 mkdir -p $outputfolder/trees
+mkdir -p $outputfolder/branchrates
+mkdir -p $outputfolder/quartetscores
+mkdir -p $outputfolder/timings
 mkdir -p $outputfolder/genetreesubsets
 
 quartetfilename={scratchdir}/quartets$identifier
 
 fixedfilename={scratchdir}/fixed$identifier
 
-treefilename={scratchdir}/trees/trees$identifier
-timefilename={scratchdir}/timings/timing$identifier
+treefilename={outputfolder}/trees/trees$identifier
+timefilename={outputfolder}/timings/timing$identifier
 
-branchratefilename={scratchdir}/branchrates/missingbranchrate$identifier
-quartetscorefilename={scratchdir}/quartetscores/quartetscore$identifier
+branchratefilename={outputfolder}/branchrates/missingbranchrate$identifier
+quartetscorefilename={outputfolder}/quartetscores/quartetscore$identifier
 
 
-genetreesubsetfilename={scratchdir}/genetreesubset$identifier
+genetreesubsetfilename={outputfolder}/genetreesubsets/genetreesubset$identifier
 
 head $genetreefilename -n${{ngenes}} > $genetreesubsetfilename
 
