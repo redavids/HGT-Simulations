@@ -49,6 +49,12 @@ genetreefilename=${{datafolder}}/${{replicate}}/${{genetree}}
 speciestreefilename=${{datafolder}}/${{replicate}}/${{speciestree}}
 
 identifier={jobname}_${{shortname}}_${{replicate}}_${{ngenes}}
+outputfolder={scratchdir}/{datasetname}/{methodname}/
+
+mkdir -p $outputfolder
+mkdir -p $outputfolder/quartets
+mkdir -p $outputfolder/trees
+mkdir -p $outputfolder/genetreesubsets
 
 quartetfilename={scratchdir}/quartets$identifier
 
@@ -97,6 +103,15 @@ module load R/3.1.2
 {njstexe} $genetreesubsetfilename $treefilename
 
 """
+
+sibling_pairing_core = """
+
+module load python/2.7.8
+
+{siblingpairingexe} $genetreesubsetfilename > $treefilename
+
+"""
+
 
 astral_core = """
 
