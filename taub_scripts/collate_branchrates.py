@@ -193,10 +193,12 @@ def analyze(folders):
     for experiment in sorted(d.keys()):
         print experiment
         d1 = d[experiment]
+        d1raw = draw[experiment]
         for hgt in sorted(d1.keys()):
             d2 = d1[hgt]
+            d2raw = d1raw[hgt]
             for ngenes in sorted([int(i) for i in d2.keys()]):
-                print "|" + hgt + "\t|" + str(ngenes) + "\t|" + str(np.average(d2[str(ngenes)])) + "\t|" + str(np.std(d2[str(ngenes)])) + "\t|" + str(len(d2[str(ngenes)])) + "\t|"
+                print "|" + hgt + "\t|" + str(ngenes) + "\t|" + str(np.average(d2[str(ngenes)])) + "\t|" + str(np.std(d2[str(ngenes)])) + "\t|" + str(len(d2raw[str(ngenes)])) + "\t|"
                 pass
         print 
     hgtrates = set([i.hgt for i in runs])
