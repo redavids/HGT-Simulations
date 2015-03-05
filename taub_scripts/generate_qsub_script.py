@@ -240,6 +240,11 @@ methods = {
             'quartetgenerator':'quartets/quartet-controller.sh',
         }
     },
+    'siblingpairing' : {
+        'core':sibling_pairing_core,
+        'methodparams':{
+        }
+    },
     'astral' : {
         'core':astral_core,
         'methodparams':{
