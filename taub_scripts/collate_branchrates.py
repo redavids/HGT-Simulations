@@ -205,7 +205,7 @@ def analyze(folders):
     methods_estimated = sorted(list(set([i for i in methods if "true" not in i])))
     methods_inv_true = sorted(list(set([i for i in methods_true if "invariants" in i])))
 
-    printraw(methods, hgtrates, genecounts, runsraw, draw, separator=',', endcharacter = ''): 
+#    printraw(methods, hgtrates, genecounts, runsraw, draw, separator=',', endcharacter = '')
 
 #    methods_inv_true = [methods_inv_true[-1]] + methods_inv_true[:-1]
 #    methods_inv_estimated = sorted(list(set([i for i in methods_estimated if "invariants" in i])))
