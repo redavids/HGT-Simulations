@@ -49,7 +49,7 @@ genetreefilename=${{datafolder}}/${{replicate}}/${{genetree}}
 speciestreefilename=${{datafolder}}/${{replicate}}/${{speciestree}}
 
 identifier={jobname}_${{shortname}}_${{replicate}}_${{ngenes}}
-outputfolder={scratchdir}/{datasetname}/{methodname}/
+outputfolder={scratchdir}/{dataset}/{method}/
 
 mkdir -p $outputfolder
 mkdir -p $outputfolder/quartets
