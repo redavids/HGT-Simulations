@@ -242,12 +242,12 @@ methods = {
     },
     'siblingpairing' : {
         'core':sibling_pairing_core,
-        'methodparams':{
+        'params':{
         }
     },
     'astral' : {
         'core':astral_core,
-        'methodparams':{
+        'params':{
         }
     },
     'astral-with-st' : {
