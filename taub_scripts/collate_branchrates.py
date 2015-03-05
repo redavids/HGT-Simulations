@@ -20,8 +20,10 @@ def parse_filename(folder, fname):
 #        parts[3] = int(parts[3].split('.')[1])
     return Run(parts[0], parts[1], parts[2], parts[3], fname, value) 
     
-def sort_files(folder):
-    runs = [parse_filename(folder, i) for i in os.listdir(folder)]
+def sort_files(folders):
+    runs = []
+    for folder in folders:
+        runs = [parse_filename(folder, i) for i in os.listdir(folder)]
     runs = [i for i in runs if i.value >= 0]
     runs_averaged = []
     d = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:-1)))
@@ -186,8 +188,8 @@ def printdifferences(methods_subset, hgtrates, genecounts, runs, d, separator=' 
 
 
 
-def analyze(folder):
-    d, runs, draw, runsraw = sort_files(folder)
+def analyze(folders):
+    d, runs, draw, runsraw = sort_files(folders)
     for experiment in sorted(d.keys()):
         print experiment
         d1 = d[experiment]
@@ -243,5 +245,5 @@ def analyze(folder):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print "python collate_branchrates.py ~/path/to/branchrates"
-    folder = sys.argv[1]
-    analyze(folder)
+    folders = sys.argv[1:]
+    analyze(folders)
