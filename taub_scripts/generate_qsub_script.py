@@ -308,6 +308,9 @@ if __name__ == "__main__":
     nparams = gen_param_file(paramfile, dataset)
     open(jobname + '.qsub', "w").write(gen_main_qsub(jobname, methodname, datasetname, method, dataset, nparams, paramfile))
     open(jobname + '_analyze.qsub', "w").write(gen_analyze_qsub(jobname))
+    if nparams/tasks_per_job > 1000:
+        print "You're asking to create more than 1000 jobs! Try reducing the number of tasks or increasing tasks_per_job."
+        return 
     if "--noqsub" not in sys.argv:
         os.system('qsub ' + jobname + '.qsub')
         os.system('qsub ' + jobname + '_analyze.qsub')
