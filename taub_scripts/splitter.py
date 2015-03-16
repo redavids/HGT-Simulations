@@ -4,14 +4,18 @@
 import time
 import sys
 
-bigfile = str(sys.argv[1])
+#bigfile = str(sys.argv[1])
 
-with open(bigfile) as f:
+directory = str(sys.argv[1])
+
+chompthefile = str(sys.argv[2])
+
+with open(directory+chompthefile) as f:
     content = f.readlines()
     f.close()
 
 for j in range(len(content)):
-    smallfilename = bigfile+str(j+1)+'.trees'
+    smallfilename = directory + 'g_trees'+str(j+1)+'.trees'
     g = open(smallfilename,'w')
     g.write(content[j])
     g.close()
