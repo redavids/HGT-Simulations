@@ -76,12 +76,12 @@ $w_dir=~m/([^\/]*).?$/;
 $w_dir=$1;
 
 #Initializing SQlite
-my $SQL_name="$w_dir.db";
-my $SQL= DBI->connect("dbi:SQLite:dbname=$SQL_name","","",{ RaiseError => 1, AutoCommit => 0}) or die $DBI::errstr; #DB's Handler
-$SQL->do("DROP TABLE IF EXISTS Sequences");
-$SQL->do("PRAGMA foreign_keys=yes");
-$SQL->do("CREATE TABLE Sequences(AID INTEGER PRIMARY KEY, SID INTEGER, n_ltree INTEGER, n_gtree INTEGER, length INTEGER, FOREIGN KEY(SID) REFERENCES Species_Trees(SID))");
-$SQL->commit();						
+#my $SQL_name="$w_dir.db";
+#my $SQL= DBI->connect("dbi:SQLite:dbname=$SQL_name","","",{ RaiseError => 1, AutoCommit => 0}) or die $DBI::errstr; #DB's Handler
+#$SQL->do("DROP TABLE IF EXISTS Sequences");
+#$SQL->do("PRAGMA foreign_keys=yes");
+#$SQL->do("CREATE TABLE Sequences(AID INTEGER PRIMARY KEY, SID INTEGER, n_ltree INTEGER, n_gtree INTEGER, length INTEGER, FOREIGN KEY(SID) REFERENCES Species_Trees(SID))");
+#$SQL->commit();						
 
 opendir (my $dirs_handler, ".");
 
@@ -96,8 +96,8 @@ foreach my  $dir (@dirs)
 	chdir($dir) or die "Error changing the working dir\n";
 
 	#Sampling Species_specific parameters and writing them into the SQLite DB.
-	#$shape_seqlength=gsl_ran_flat($rng->raw(),5.7,7.3); # Average length drawn from ln(5.7)=300 to ln(7.3)=1500
-	#$logscale_seqlength=gsl_ran_flat($rng->raw(),0.0,0.3);
+	$shape_seqlength=gsl_ran_flat($rng->raw(),5.7,7.3); # Average length drawn from ln(5.7)=300 to ln(7.3)=1500
+	$logscale_seqlength=gsl_ran_flat($rng->raw(),0.0,0.3);
 
 
 	#$SQL->do("UPDATE Species_Trees SET Shape_seqlength=$shape_seqlength WHERE SID==$sp_counter");
@@ -107,10 +107,11 @@ foreach my  $dir (@dirs)
 	print "\t\nGenerating the INDELIBLE control.txt file\n";
 	open($filehandwrite,">"."control.txt") or die "Error opening the file\n";
 	
-	@files=<shuftruegenetrees*.trees>;
+    #@files=<shuftruegenetrees*.trees>;
+	@files=<g_trees*.trees>;
 	
 	$models="[TYPE] NUCLEOTIDE 1\n";
-	$settings="[SETTINGS]\n[randomseed] 2478\n[fileperrep] FALSE\n";
+	$settings="[SETTINGS]\n[randomseed] 2478\n[fileperrep] FALSE";
 	$trees='';
 	$partitions='';
 	$evolves='[EVOLVE] ';
@@ -118,7 +119,8 @@ foreach my  $dir (@dirs)
 	foreach my $file (@files)
 	{
 		open($filehandread,$file) or die "Error opening the file $file\n";
-		$file=~m/shuftruegenetrees(\d*)\.trees/;
+		#$file=~m/shuftruegenetrees(\d*)\.trees/;
+        $file=~m/g_trees(\d*)\.trees/;
 		$n_digits=length($1);
 		$locus=int($1);
 		$/="";
@@ -165,7 +167,7 @@ foreach my  $dir (@dirs)
 		$f/=$f;
 		
 		#Sampling Sequence length
-		$length=1000; # int(gsl_ran_lognormal($rng->raw(),$shape_seqlength,$logscale_seqlength));
+		$length= int(gsl_ran_lognormal($rng->raw(),$shape_seqlength,$logscale_seqlength));
 
 		$models.=sprintf("\[MODEL] GTR%.*d\n\t[submodel]  GTR %f %f %f %f %f\n\t[statefreq] %f %f %f %f\n\t[rates] 0 %f 0\n",$n_digits,$locus,$a,$b,$c,$d,$e,$T,$C,$A,$G,$alpha);
 		$trees.=sprintf("\[TREE\] T%.*d %s\n",$n_digits,$locus,$itree);
@@ -173,7 +175,7 @@ foreach my  $dir (@dirs)
 		$evolves.=sprintf("T%.*d 1 %.*d\n",$n_digits,$locus,$n_digits,$locus);
 		
 		#SQLite write
-		$SQL->do("INSERT INTO Sequences VALUES ($sequence_counter,$sp_counter,$locus,1,$length)");
+		#$SQL->do("INSERT INTO Sequences VALUES ($sequence_counter,$sp_counter,$locus,1,$length)");
 		#$SQL->do("UPDATE Species_Trees SET Alpha_site=$alpha WHERE SID==$sp_counter");
 		
 		$sequence_counter+=1;
@@ -188,8 +190,8 @@ foreach my  $dir (@dirs)
 	
 }
 
-$SQL->commit();
-$SQL->disconnect or die $DBI::errstr;
+#$SQL->commit();
+#$SQL->disconnect or die $DBI::errstr;
 
 #print "Parallel sequence simulation\n";
 #system("ls -d [0-9][0-9][0-9] | parallel -P $n_threads 'cd {} && indelible'");
