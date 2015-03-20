@@ -72,7 +72,7 @@ quartetscorefilename=$outputfolder/quartetscores/quartetscore$identifier
 
 genetreesubsetfilename=$outputfolder/genetreesubsets/genetreesubset$identifier
 
-head $genetreefilename -n${{ngenes}} > $genetreesubsetfilename
+cat $genetreefilename  | head -n${{ngenes}} > $genetreesubsetfilename
 
 {methodcore}
 
@@ -115,15 +115,57 @@ module load python/2.7.8
 
 """
 
+
 astral_filling_core = """
 
 module load java
+module load python/2.7.8
 
 filledfilename=$genetreesubsetfilename-filled
 
-{fillingexe} $genetreesubsetfilename > $filledfilename
+python tree_completer.py $genetreesubsetfilename > $filledfilename
 
 {astralexe} -i $filledfilename -o $treefilename
+
+"""
+
+
+extend_bipartitions_core = """
+
+mkdir $outputfolder/fulltrees
+mkdir $outputfolder/completedtrees
+mkdir $outputfolder/bootstraps
+
+fulltreesfilename=$outputfolder/completedtrees/completedtrees$identifier
+fulltreesfilename=$outputfolder/fulltrees/fulltrees$identifier
+bootstrapfilename=$outputfolder/bootstraps/boostrap$identifier
+partialtreesfilename=$outputfolder/fulltrees/partialtrees$identifier
+
+
+rm $fulltreesfilename
+touch $fulltreesfilename
+
+cat $genetreessubsetfilename >> $fulltreesfilename
+
+for i in `seq 0 {nbootstraps}`
+do
+
+cat $genetreesubsetfilename | shuf | head -n {bootstrapsize} > $bootstrapfilename
+
+{njstexe} $bootstrapfilename $partialtreesfilename
+cat $partialtreesfilename >> $fulltreesfilename
+
+#{siblingpairingexe} $bootstrapfilename >> $fulltreesfilename
+
+done
+
+module load python/2.7.8
+
+python tree_completer.py $fulltreesfilename $completedtreesfilename
+
+module load java
+
+{astralexe} -i $completedtreesfilename -o $treefilename
 
 """
 
