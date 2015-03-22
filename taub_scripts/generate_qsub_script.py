@@ -115,6 +115,21 @@ module load python/2.7.8
 
 """
 
+
+astral_filling_core = """
+
+module load java
+module load python/2.7.8
+
+filledfilename=$genetreesubsetfilename-filled
+
+python tree_completer.py $genetreesubsetfilename > $filledfilename
+
+{astralexe} -i $filledfilename -o $treefilename
+
+"""
+
+
 extend_bipartitions_core = """
 
 mkdir $outputfolder/fulltrees
@@ -153,6 +168,7 @@ module load java
 {astralexe} -i $completedtreesfilename -o $treefilename
 
 """
+
 
 astral_core = """
 
@@ -210,7 +226,7 @@ python collate_branchrates.py {scratchdir}/branchrates/ > {jobname}.out
 exit 0
 """
 
-tasks_per_job=30
+tasks_per_job=10
 
 def gen_param_file(paramfile, params):
     nreps = params['nreps']
@@ -255,6 +271,9 @@ dirpaths = ['hgt-data/model.50.2000000.0.000001.0 0',
                     'hgt-data/model.50.2000000.0.000001.0.0000002 20',
                     'hgt-data/model.50.2000000.0.000001.0.0000005 50']
 
+smidgen_dirpaths = ['/home/vachasp2/smidgen/100-taxa/100 100',
+                    '/home/vachasp2/smidgen/500-taxa/100 500',
+                    '/home/vachasp2/smidgen/1000-taxa/100 1000']
 
 datasets = {
     'hgtdata-estimated': {
@@ -270,8 +289,15 @@ datasets = {
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'speciestreetype':'s_tree.trees',
+        },
+    'smidgen': {
+        'nreps':["%d" % i for i in range(0,31)],
+        'dirpaths':smidgen_dirpaths,
+        'ngenes':['1000'],
+        'genetreetype':'source_trees',
+        'speciestreetype':'model_tree',
+        }
     }
-}
 
 methods = {
     'wqmc' : {
@@ -288,6 +314,11 @@ methods = {
     },
     'astral' : {
         'core':astral_core,
+        'params':{
+        }
+    },
+    'astral-filling' : {
+        'core':astral_filling_core,
         'params':{
         }
     },
