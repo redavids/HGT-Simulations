@@ -132,11 +132,13 @@ python tree_completer.py $genetreesubsetfilename > $filledfilename
 
 extend_bipartitions_core = """
 
+module load R/3.1.2
+
 mkdir $outputfolder/fulltrees
 mkdir $outputfolder/completedtrees
 mkdir $outputfolder/bootstraps
 
-fulltreesfilename=$outputfolder/completedtrees/completedtrees$identifier
+completedtreesfilename=$outputfolder/completedtrees/completedtrees$identifier
 fulltreesfilename=$outputfolder/fulltrees/fulltrees$identifier
 bootstrapfilename=$outputfolder/bootstraps/boostrap$identifier
 partialtreesfilename=$outputfolder/fulltrees/partialtrees$identifier
@@ -145,12 +147,14 @@ partialtreesfilename=$outputfolder/fulltrees/partialtrees$identifier
 rm $fulltreesfilename
 touch $fulltreesfilename
 
-cat $genetreessubsetfilename >> $fulltreesfilename
+cat $genetreesubsetfilename >> $fulltreesfilename
 
 for i in `seq 0 {nbootstraps}`
 do
 
 cat $genetreesubsetfilename | shuf | head -n {bootstrapsize} > $bootstrapfilename
+
+rm $partialtreesfilename
 
 {njstexe} $bootstrapfilename $partialtreesfilename
 cat $partialtreesfilename >> $fulltreesfilename
@@ -165,7 +169,7 @@ python tree_completer.py $fulltreesfilename $completedtreesfilename
 
 module load java
 
-{astralexe} -i $completedtreesfilename -o $treefilename
+{astralexe} -i $genetreesubsetfilename -o $treefilename -e $completedtreesfilename
 
 """
 
@@ -350,6 +354,13 @@ methods = {
             'quartetscountfile':'quartetswqmc-estimated',
             'quartetgenerator':'bash ./dominant_qgen.sh',
         }
+    },
+    'tree-completion-astral': {
+        'core':extend_bipartitions_core,
+        'params':{
+            'nbootstraps':'10',
+            'bootstrapsize':'25'
+        }
     }
     
 }
@@ -379,7 +390,7 @@ if __name__ == "__main__":
     open(jobname + '_analyze.qsub', "w").write(gen_analyze_qsub(jobname))
     if nparams/tasks_per_job > 1000:
         print "You're asking to create more than 1000 jobs! Try reducing the number of tasks or increasing tasks_per_job."
-        return 
+        exit() 
     if "--noqsub" not in sys.argv:
         os.system('qsub ' + jobname + '.qsub')
         os.system('qsub ' + jobname + '_analyze.qsub')
