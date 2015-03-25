@@ -19,4 +19,7 @@ if __name__ == '__main__':
     
     for t in tl:
         delete_taxa(t, ndelete)
+
+    tl.append(dendropy.treesim.star_tree(tl.taxon_set))
+
     tl.write_to_path(output, 'newick')
