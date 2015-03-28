@@ -2,11 +2,17 @@ import dendropy
 import numpy as np
 
 def delete_taxa(t, seqsubset, n):
-    taxa = [i.taxon for i in np.random.choice(t.leaf_nodes(), size=n)]
+    taxa = [i.taxon for i in np.random.choice(t.leaf_nodes(), size=n, replace=False)]
     labels = set([str(i.label) for i in taxa])
     t.prune_taxa(taxa)
-    seqsubset =[i for i in seqsubset if i.split()[0] not in labels]
-    return seqsubset
+    modseq = []
+    for i in seqsubset:
+        if i.split()[0] in labels:
+            modseq.append(i.replace('A', '-').replace('C', '-').replace('T', '-').replace('G', '-'))
+        else:
+            modseq.append(i)
+#    seqsubset =[i for i in seqsubset if i.split()[0] not in labels]
+    return modseq
     
     
 def isboundary(s):
