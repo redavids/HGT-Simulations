@@ -14,8 +14,6 @@ def difference(T, t):
     for e in t.get_edge_set():
         if len(edges_by_split(T, t, e.split_bitmask)) == 0:
             diff+=1
-        if len(edges_by_split(T, t, t.seed_node.edge.split_bitmask ^ e.split_bitmask)) == 0:
-            diff+=1
     return diff
 
 
@@ -170,14 +168,18 @@ def root_t_correctly(T, t, s1, s2):
 
     split = TA.seed_node.child_nodes()[0].edge.split_bitmask & t.seed_node.edge.split_bitmask
     
-
-
+    print TA.taxon_set.split_taxa_list(split)
+    TA.print_plot()
     if t.mrca(split_bitmask = split ^ t.seed_node.edge.split_bitmask) == t.mrca(split_bitmask = split):
         t.reroot_at_edge(t.seed_node.child_nodes()[0].edge)
     elif t.mrca(split_bitmask=split) in [None, t.seed_node]:
         t.reroot_at_node(t.mrca(split_bitmask = split ^ t.seed_node.edge.split_bitmask))
     else: 
-        t.reroot_at_node(t.mrca(split_bitmask=split))
+        n = t.mrca(split_bitmask=split)
+        if n.is_leaf:
+            t.reroot_at_edge(n.incident_edges()[0])
+        else:
+            t.reroot_at_node(n)
         
     
 
@@ -288,6 +290,7 @@ if __name__ == "__main__":
     all_tree_list.read_from_path(tree_file, 'newick')
 
     for tree in all_tree_list:
+        print len(tree.leaf_nodes())
         if len(tree.leaf_nodes()) == len(tree.taxon_set):
             big_trees.append(tree)
         else:
@@ -300,7 +303,7 @@ if __name__ == "__main__":
 #            if k != 14:
 #                continue
             tx = match_subtrees(T, t)
-            output_file.write(str(tx) + ';')
+            output_file.write(str(tx) + ';' + '\n')
             completed_trees.append(tx)
             ta.clone_from(T)
             ta.update_splits()
