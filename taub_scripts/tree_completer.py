@@ -184,10 +184,27 @@ def root_t_correctly(T, t, s1, s2):
     
 
     t.update_splits()
+    T.update_splits()
+    
+    if len(T.leaf_nodes()) == 1:
+        print sorted([i.taxon.label for i in TA.leaf_nodes()])
+        print sorted([i.taxon.label for i in t.leaf_nodes()])
+        print sorted([i.taxon.label for i in T.leaf_nodes()])
+        T.clone_from(t)
+        return
+    
 #    T.print_plot(plot_metric='level', show_internal_node_ids=True)
 #    t.print_plot(plot_metric='level', show_internal_node_ids=True)
     n1 = [i for i in T.nodes() if i.taxon == tx1][0]
+    if n1.parent_node == None:
+        T.print_plot(plot_metric='level')
+        TA.print_plot(plot_metric='level')
+        t.print_plot(plot_metric='level')
+        T.reroot_at_edge(n1.incident_edges()[0])
     n1.parent_node.add_child(t.seed_node)
+
+        
+
     T.update_splits()
     t.update_splits()
     T.prune_taxa([tx1])
