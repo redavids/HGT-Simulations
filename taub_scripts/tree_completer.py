@@ -297,7 +297,7 @@ if __name__ == "__main__":
             little_trees.append(tree)
     k = 0
     ta = dendropy.Tree()
-    for T in big_trees[:1]:
+    for T in big_trees:
         for t in little_trees:
             k += 1
 #            if k != 14:
