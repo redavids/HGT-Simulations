@@ -171,7 +171,7 @@ foreach my  $dir (@dirs)
 
 		$models.=sprintf("\[MODEL] GTR%.*d\n\t[submodel]  GTR %f %f %f %f %f\n\t[statefreq] %f %f %f %f\n\t[rates] 0 %f 0\n",$n_digits,$locus,$a,$b,$c,$d,$e,$T,$C,$A,$G,$alpha);
 		#$trees.=sprintf("\[TREE\] T%.*d %s\n",$n_digits,$locus,$itree);
-        $trees.=sprintf("\[TREE\] T%.*d %s\n\t[branchlengths] NON-ULTRAMETRIC\n",$n_digits,$locus,$itree);
+        $trees.=sprintf("\[TREE\] NON-ULTRAMETRIC-TREE T%.*d %s\n\t[branchlengths] NON-ULTRAMETRIC\n",$n_digits,$locus,$itree);
 		$partitions.=sprintf("\[PARTITIONS\] T%.*d \[T%.*d GTR%.*d %s\]\n",$n_digits,$locus,$n_digits,$locus,$n_digits,$locus,$length);
 		$evolves.=sprintf("T%.*d 1 %.*d\n",$n_digits,$locus,$n_digits,$locus);
 		
