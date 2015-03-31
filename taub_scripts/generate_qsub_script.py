@@ -72,7 +72,7 @@ quartetscorefilename=$outputfolder/quartetscores/quartetscore$identifier
 
 genetreesubsetfilename=$outputfolder/genetreesubsets/genetreesubset$identifier
 
-head $genetreefilename -n${{ngenes}} > $genetreesubsetfilename
+cat $genetreefilename  | head -n${{ngenes}} > $genetreesubsetfilename
 
 {methodcore}
 
@@ -112,6 +112,64 @@ sibling_pairing_core = """
 module load python/2.7.8
 
 {siblingpairingexe} $genetreesubsetfilename > $treefilename
+
+"""
+
+
+astral_filling_core = """
+
+module load java
+module load python/2.7.8
+
+filledfilename=$genetreesubsetfilename-filled
+
+python tree_completer.py $genetreesubsetfilename > $filledfilename
+
+{astralexe} -i $filledfilename -o $treefilename
+
+"""
+
+
+extend_bipartitions_core = """
+
+module load R/3.1.2
+
+mkdir $outputfolder/fulltrees
+mkdir $outputfolder/completedtrees
+mkdir $outputfolder/bootstraps
+
+completedtreesfilename=$outputfolder/completedtrees/completedtrees$identifier
+fulltreesfilename=$outputfolder/fulltrees/fulltrees$identifier
+bootstrapfilename=$outputfolder/bootstraps/boostrap$identifier
+partialtreesfilename=$outputfolder/fulltrees/partialtrees$identifier
+
+
+rm $fulltreesfilename
+touch $fulltreesfilename
+
+cat $genetreesubsetfilename >> $fulltreesfilename
+
+for i in `seq 0 {nbootstraps}`
+do
+
+cat $genetreesubsetfilename | shuf | head -n {bootstrapsize} > $bootstrapfilename
+
+rm $partialtreesfilename
+
+{njstexe} $bootstrapfilename $partialtreesfilename
+cat $partialtreesfilename >> $fulltreesfilename
+
+#{siblingpairingexe} $bootstrapfilename >> $fulltreesfilename
+
+done
+
+module load python/2.7.8
+
+python tree_completer.py $fulltreesfilename $completedtreesfilename
+
+module load java
+
+{astralexe} -i $genetreesubsetfilename -o $treefilename -e $completedtreesfilename
 
 """
 
@@ -172,7 +230,7 @@ python collate_branchrates.py {scratchdir}/branchrates/ > {jobname}.out
 exit 0
 """
 
-tasks_per_job=30
+tasks_per_job=10
 
 def gen_param_file(paramfile, params):
     nreps = params['nreps']
@@ -217,6 +275,9 @@ dirpaths = ['hgt-data/model.50.2000000.0.000001.0 0',
                     'hgt-data/model.50.2000000.0.000001.0.0000002 20',
                     'hgt-data/model.50.2000000.0.000001.0.0000005 50']
 
+smidgen_dirpaths = ['/home/vachasp2/smidgen/100-taxa/100 100',
+                    '/home/vachasp2/smidgen/500-taxa/100 500',
+                    '/home/vachasp2/smidgen/1000-taxa/100 1000']
 
 datasets = {
     'hgtdata-estimated': {
@@ -232,8 +293,15 @@ datasets = {
         'ngenes':['10', '25', '50', '100', '200', '400', '1000'],
         'genetreetype':'truegenetrees',
         'speciestreetype':'s_tree.trees',
+        },
+    'smidgen': {
+        'nreps':["%d" % i for i in range(0,31)],
+        'dirpaths':smidgen_dirpaths,
+        'ngenes':['1000'],
+        'genetreetype':'source_trees',
+        'speciestreetype':'model_tree',
+        }
     }
-}
 
 methods = {
     'wqmc' : {
@@ -250,6 +318,11 @@ methods = {
     },
     'astral' : {
         'core':astral_core,
+        'params':{
+        }
+    },
+    'astral-filling' : {
+        'core':astral_filling_core,
         'params':{
         }
     },
@@ -281,6 +354,13 @@ methods = {
             'quartetscountfile':'quartetswqmc-estimated',
             'quartetgenerator':'bash ./dominant_qgen.sh',
         }
+    },
+    'tree-completion-astral': {
+        'core':extend_bipartitions_core,
+        'params':{
+            'nbootstraps':'10',
+            'bootstrapsize':'25'
+        }
     }
     
 }
@@ -310,7 +390,7 @@ if __name__ == "__main__":
     open(jobname + '_analyze.qsub', "w").write(gen_analyze_qsub(jobname))
     if nparams/tasks_per_job > 1000:
         print "You're asking to create more than 1000 jobs! Try reducing the number of tasks or increasing tasks_per_job."
-        return 
+        exit() 
     if "--noqsub" not in sys.argv:
         os.system('qsub ' + jobname + '.qsub')
         os.system('qsub ' + jobname + '_analyze.qsub')
