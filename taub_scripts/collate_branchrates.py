@@ -2,51 +2,114 @@ from collections import defaultdict, namedtuple
 import numpy as np
 import os, sys
 
-Run = namedtuple('Run', ['experiment', 'hgt', 'index', 'ngenes', 'filename', 'value'])
+Run = namedtuple('Run', ['experiment', 'hgt', 'index', 'ngenes', 'filename', 'branchrate', 'quartetscore'])
 
-def parse_filename(folder, fname):
+def parse_filename(branchratefolder, quartetscorefolder, fname):
     parts = fname.split('_')
-    value = open(folder + "/" + fname).read()    
+    branchrate = open(branchratefolder + "/" + fname).read()
+    quartetscore = open(quartetscorefolder + "/" + fname.replace('missingbranchrate', 'quartetscore')).read()
     try:
-        value = float(value)
+        branchrate = float(branchrate)
 
     except ValueError:
         print "couldn't read", fname
-        value = -1
+        branchrate = -1
+    try:
+        quartetscore = float(quartetscore)
+    except ValueError:
+        print "couldn't read", fname.replace('missingbranchrate', 'quartetscore')
+        branchrate = -1
+
 #    parts[3] = int(parts[3])
 #    if parts[3] == '.':
 #        parts[3] = 1000
 #    else:
 #        parts[3] = int(parts[3].split('.')[1])
-    return Run(parts[0], parts[1], parts[2], parts[3], fname, value) 
+    
+    return Run(parts[0], parts[1], parts[2], parts[3], fname, branchrate, quartetscore)
     
 def sort_files(folders):
     runs = []
     for folder in folders:
-        runs.extend([parse_filename(folder, i) for i in os.listdir(folder)])
-    runs = [i for i in runs if i.value >= 0]
+        runs.extend([parse_filename(folder + '/branchrates/', folder + '/quartetscores', i) for i in os.listdir(folder + '/branchrates')])
+    runs = [i for i in runs if i.branchrate >= 0]
     runs_averaged = []
     d = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:-1)))
     d_raw = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:[])))
+    qd = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:-1)))
+    qd_raw = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:[])))
     for i in runs:
-        d_raw[i.experiment][i.hgt][str(i.ngenes)].append(i.value)
+        d_raw[i.experiment][i.hgt][str(i.ngenes)].append(i.branchrate)
+        qd_raw[i.experiment][i.hgt][str(i.ngenes)].append(i.quartetscore)
+        
     for experiment in sorted(d_raw.keys()):
         print experiment
         d1 = d[experiment]
         d1_raw = d_raw[experiment]
+        qd1 = qd[experiment]
+        qd1_raw = qd_raw[experiment]
         for hgt in sorted(d1_raw.keys()):
             d2 = d1[hgt]
             d2_raw = d1_raw[hgt]
+            qd2 = qd1[hgt]
+            qd2_raw = qd1_raw[hgt]
             for ngenes in sorted([int(i) for i in d2_raw.keys()]):
 #                print experiment, hgt, ngenes
-                runs_averaged.append( Run(experiment, hgt, 0, ngenes, '', np.average(d2_raw[str(ngenes)])) )
-                d2[str(ngenes)] = np.average(d2_raw[str(ngenes)])
+                runs_averaged.append( Run(experiment, hgt, 0, ngenes, '', np.average(d2_raw[str(ngenes)]), np.average(qd2_raw[str(ngenes)]) ) )
+                d2[str(ngenes)] = (np.average(d2_raw[str(ngenes)]), np.std(d2_raw[str(ngenes)]))
+                qd2[str(ngenes)] = np.average(qd2_raw[str(ngenes)])
 #    d = add_astral(d)
     
 
-    return d, runs_averaged, d_raw, runs
+    return d, qd, runs_averaged, d_raw, qd_raw, runs
 
-def printtable(methods_subset, hgtrates, genecounts, runs, d, separator=' ', endcharacter = '', header = '', footer='', max_title=50): 
+def printgnuplot(methods_subset, hgtrates, genecounts, runs, d, qd, draw, qdraw, separator=' ', endcharacter = '', header = '', footer='', max_title=50, print_quartet_scores=False): 
+    print hgtrates
+    print genecounts
+    for m in methods_subset:
+        print d[m]
+    color_names = sorted(list(set([i.split('.')[0] for i in methods_subset])))
+    print color_names
+    colors = dict(zip(color_names, range(len(color_names))))
+    def valordash(d, m, hgtrate, ngenes):
+        try: 
+            if d[m][str(hgtrate)][str(ngenes)][0] * 100 == -100:
+                return '-','-'
+            return '{:.1f}'.format(d[m][str(hgtrate)][str(ngenes)][0] * 100), '{:.1f}'.format(d[m][str(hgtrate)][str(ngenes)][1] * 100)
+        except :
+            return "-"
+    print methods_subset
+    for hgtrate in hgtrates:
+        print header
+        for ngenes in sorted([int(i) for i in genecounts]):            
+            methods_sub_subset = [m for m in methods_subset if d[m][str(hgtrate)][str(ngenes)] >= 0]
+            if len(methods_sub_subset) == 0:
+                continue
+            print str(ngenes) + " " + hgtrate + " " + methods_sub_subset[0].split('.')[1]
+            for m in methods_subset:
+                if valordash(d, m, str(hgtrate), str(ngenes))[0] != '-':
+                    print m.split('.')[0].replace('missingbranchrate', '') + separator + separator.join(valordash(d, m, str(hgtrate), str(ngenes))) + separator + str(colors[m.split('.')[0]])
+#                    print m.split('.')[0].replace('missingbranchrate', '') + separator + separator.join([str(i) for i in draw[m][str(hgtrate)][str(ngenes)]]) + separator + str(colors[m.split('.')[0]])
+            print
+            print
+             
+        print footer
+        print
+        print
+
+
+
+def printcsv(methods_subset, hgtrates, genecounts, runs, runsraw, d, qd, draw, qdraw, ofile):
+
+    ofile.write(','.join(["experiment", "condition", "replicate", "ngenes", "branchrate", "quartetscore"]))
+    ofile.write('\n')
+
+    for run in runsraw:
+        ofile.write(','.join([str(i) for i in [run.experiment, run.hgt, run.index, run.ngenes, run.branchrate, run.quartetscore]])) 
+        ofile.write('\n')
+ 
+
+def printtable(methods_subset, hgtrates, genecounts, runs, d, qd, separator=' ', endcharacter = '', header = '', footer='', max_title=50, print_quartet_scores=False): 
     print hgtrates
     print genecounts
     for m in methods_subset:
@@ -57,10 +120,11 @@ def printtable(methods_subset, hgtrates, genecounts, runs, d, separator=' ', end
             return '{:.1f}'.format(d[m][str(hgtrate)][str(ngenes)] * 100)
         except :
             return "-"
-    
+    print methods_subset
     for hgtrate in hgtrates:
         print header
-        print "HGT"+separator+ "ngenes" + separator+ separator.join([i.replace("missingbranchrate","")[:max_title] for i in methods_subset]) + endcharacter
+        print 'condition' + separator + separator.join([m.replace("missingbranchrate","") for m in methods_subset])
+#        print "HGT"+separator+ "ngenes" + separator+ separator.join([i.replace("missingbranchrate","")[:max_title] for i in methods_subset]) + endcharacter
         for ngenes in sorted([int(i) for i in genecounts]):            
             try:
                 print str(hgtrate) + separator + str(ngenes) + separator + separator.join([valordash(d, m, str(hgtrate), str(ngenes)) for m in methods_subset]) + endcharacter
@@ -72,21 +136,24 @@ def printtable(methods_subset, hgtrates, genecounts, runs, d, separator=' ', end
         print
         print
 
-def printtable_T(methods_subset, hgtrates, genecounts, runs, d, separator=' ', endcharacter = '', header = '', footer='', max_title=50): 
+def printtable_T(methods_subset, hgtrates, genecounts, runs, d, qd, separator=' ', endcharacter = '', header = '', footer='', max_title=50,  print_quartet_scores=False): 
     print hgtrates
     print genecounts
     for m in methods_subset:
         print d[m]
 
-    def valordash(d, m, hgtrate, ngenes):
+    def valordash(d, m, hgtrate, ngenes, ndec=1):
         try: 
-            return '{:.1f}'.format(d[m][str(hgtrate)][str(ngenes)] * 100)
+            return ('{:.'+str(ndec)+'f}').format(d[m][str(hgtrate)][str(ngenes)][0] * 100)
         except :
             return "-"
     
+
     for hgtrate in hgtrates:
+
+        print "\subsubsection{Branch Rate w/model condition " + hgtrate + "}"
         print header
-        print "HGT" + separator + separator.join([hgtrate] *  len(genecounts) ) + endcharacter
+#        print "HGT" + separator + separator.join([hgtrate] *  len(genecounts) ) + endcharacter
         print "ngenes" + separator + separator.join( [str(i) for i in sorted([int(i) for i in genecounts])]) + endcharacter
 
         for method in methods_subset:
@@ -95,6 +162,20 @@ def printtable_T(methods_subset, hgtrates, genecounts, runs, d, separator=' ', e
         print footer
         print
         print
+
+        if print_quartet_scores:
+
+            print "\subsubsection{Quartet Score w/model condition " + hgtrate + "}"
+            print header
+        #        print "HGT" + separator + separator.join([hgtrate] *  len(genecounts) ) + endcharacter
+            print "ngenes" + separator + separator.join( [str(i) for i in sorted([int(i) for i in genecounts])]) + endcharacter
+            
+            for method in methods_subset:
+                print method.replace("missingbranchrate","")[:max_title] + separator + separator.join([valordash(qd, method, str(hgtrate), str(ngenes), 5) for ngenes in sorted([int(i) for i in genecounts])]) + endcharacter
+
+            print footer
+
+
 
 
 
@@ -139,7 +220,7 @@ def printdifferences(methods_subset, hgtrates, genecounts, runs, d, separator=' 
             
     
     for hgtrate in hgtrates:
-        print opener+"HGT"+separator+ "ngenes"+separator+methods_subset[0].replace("quartetscore","") +separator+ '=' + separator + methods_subset[1].replace("quartetscore","")+closer
+#        print opener+"HGT"+separator+ "ngenes"+separator+methods_subset[0].replace("quartetscore","") +separator+ '=' + separator + methods_subset[1].replace("quartetscore","")+closer
         for ngenes in sorted([int(i) for i in genecounts]):            
             try:
                 l0 = [i for i in runs if 
@@ -214,9 +295,64 @@ def printdifferences(methods_subset, hgtrates, genecounts, runs, d, separator=' 
 
 
 
+import matplotlib
+matplotlib.use("PDF")
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+import random
 
-def analyze(folders):
-    d, runs, draw, runsraw = sort_files(folders)
+def plotscatter(methods, conditions, genecounts, runs, d, qd, draw, qdraw):
+    pp = PdfPages('/home/vachasp2/plots.pdf')
+    plotn = 0
+#    plottypes = [321,322,323,324,325,326]
+    plottypes = range(511, 516)
+#    plottypes = [221, 224]
+    fig = plt.figure(figsize=(8.5, 11), dpi=180)
+    for condition in conditions:
+        for ngenes in sorted([int(i) for i in genecounts]):
+            xs = []
+            ys = []
+            sxs = []
+            sys = []
+            i = 0
+            print condition, ngenes
+            for m in methods:
+                print m
+                ys.append(draw[m][str(condition)][str(ngenes)])
+                xs.append([i for k in ys[-1]])
+                sys.extend(draw[m][str(condition)][str(ngenes)])
+                sxs.extend([i + 0.1*(random.random() - 0.5) for k in ys[-1]])
+                i += 1
+            if len(ys) == 0:
+                print "skipping"
+                continue
+
+            print sxs
+            print sys
+            xs = [i for i in xs if i]
+            ys = [i for i in ys if i]
+            print xs
+            print ys
+            thismethods=[j for j in methods if draw[j][str(condition)][str(ngenes)]]
+#            plt.subplot2grid(gridsize, (plotn, 0), rowspan=1, colspan=1)
+            plt.subplot(plottypes[plotn])
+            plt.boxplot(ys, showmeans=True, labels=[i.replace("missingbranchrate", "").split('.')[0] for i in thismethods], positions=range(len(thismethods)), vert=False)
+            plt.scatter(sys, sxs, marker='x')
+            plt.title(thismethods[0].split('.')[1] + " " + condition + " " + str(ngenes))
+            print "plotted", plottypes[plotn]
+#            plt.yticks(rotation=45)
+            plotn += 1
+            if plotn==len(plottypes):
+                plt.tight_layout()
+                plotn = 0
+                pp.savefig(fig)
+                plt.close()
+                fig = plt.figure(figsize=(8.5, 11), dpi=180)
+
+    pp.close()
+
+def analyze(folders, tpe, ofile):
+    d, qd, runs, draw, qdraw, runsraw = sort_files(folders)
     for experiment in sorted(d.keys()):
         print experiment
         d1 = d[experiment]
@@ -236,44 +372,24 @@ def analyze(folders):
     methods_estimated = sorted(list(set([i for i in methods if "true" not in i])))
     methods_inv_true = sorted(list(set([i for i in methods_true if "invariants" in i])))
 
-    printtable_T(methods, hgtrates, genecounts, runs, d, separator='&', endcharacter='\\\\', header='\\begin{tabular}' + '{' + ' | '.join(['c'] * (len(genecounts) + 1)) + ' }', footer='\\end{tabular}\n\\\\\\hrule',max_title=5)
+    if tpe == 'latex':
+        printtable_T(methods, hgtrates, genecounts, runs, d, qd, separator='&', endcharacter='\\\\', header='\\begin{tabular}' + '{' + ' | '.join(['c'] * (len(genecounts) + 1)) + ' }', footer='\\end{tabular}\n\\\\\\hrule',max_title=50, print_quartet_scores=False)
+    elif tpe == 'gnuplot':
+        printgnuplot(methods, hgtrates, genecounts, runs, d, qd, draw, qdraw, separator=',', max_title=50, print_quartet_scores=False)
+    elif tpe == 'scatter':
+        plotscatter(methods, hgtrates, genecounts, runs, d, qd, draw, qdraw)
+    elif tpe == 'csv':
+        printcsv(methods, hgtrates, genecounts, runs, runsraw, d, qd, draw, qdraw, ofile)
 
-#    printraw(methods, hgtrates, genecounts, runsraw, draw, separator=',', endcharacter = '')
-
-#    methods_inv_true = [methods_inv_true[-1]] + methods_inv_true[:-1]
-#    methods_inv_estimated = sorted(list(set([i for i in methods_estimated if "invariants" in i])))
-
-#    methods_sparsesample_estimated = sorted(list(set([i for i in methods_estimated if "sparsesample" in i and  i[-1] =='p']))) + [i for i in methods if 'wqmc-estimated' in i]
-#    methods_sparsesample_true = sorted(list(set([i for i in methods_true if "sparsesample" in i and i[-1] =='p' ]))) + [i for i in methods if 'wqmc-true' in i]
-
-    methods_important = ['astral', 'missingbranchratewqmc-estimated', 'missingbranchratewqmc-invariants',  'missingbranchratenjst-estimated', 'missingbranchrateastral-with-st-estimated',  'missingbranchrateastral-with-wqmc-estimated', 'astral-true', 'missingbranchratewqmc-true', 'missingbranchratewqmc-invariants-true', 'missingbranchratenjst-true','missingbranchrateastral-with-st-true',  'missingbranchrateastral-with-wqmc-true',]
-
-
-    methods_quartetscores = ['quartetscoreastral-estimated', 'quartetscorewqmc-estimated', 'quartetscoreastral-true', 'quartetscorewqmc-true',]
-    methods_quartetscores_estimated = ['quartetscoreastral-estimated', 'quartetscorewqmc-estimated']
-    methods_quartetscores_true = ['quartetscoreastral-true', 'quartetscorewqmc-true']
-
-
-
-#    printtable(methods_estimated, hgtrates, genecounts, runs)
-#    printtable(methods_true, hgtrates, genecounts, runs)
-
-#    printtable(methods_inv_estimated, hgtrates, genecounts, runs)
-#    printtable(methods_inv_true, hgtrates, genecounts, runs)
-
-#    printtable(methods_sparsesample_estimated, hgtrates, genecounts, runs)
-#    printtable(methods_sparsesample_true, hgtrates, genecounts, runs)
-
-
-#    printdifferences(methods_quartetscores_true, hgtrates, genecounts, runsraw, draw, '|', '|', '|')
-#    print 
-#    print
-#    printdifferences(methods_quartetscores_estimated, hgtrates, genecounts, runsraw, draw, '|', '|', '|')
-#    print 
-#    print    
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print "python collate_branchrates.py ~/path/to/branchrates"
-    folders = sys.argv[1:]
-    analyze(folders)
+    tpe = sys.argv[1]
+    if tpe in ['csv']:
+        folders=sys.argv[3:]
+        ofile = sys.argv[2]
+        analyze(folders, tpe, open(ofile, 'w'))
+    else:
+        folders = sys.argv[2:]
+        analyze(folders, tpe, None)

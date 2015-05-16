@@ -1,8 +1,6 @@
 import copy
 import sys
 
-
-
 class QuartetsInfo:
     def __init__(self,infile,outfile):
         self.infile = infile

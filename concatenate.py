@@ -1,4 +1,6 @@
 import sys
+from collections import defaultdict
+import numpy as np
 
 genecount=None
 if len(sys.argv) > 3:
@@ -14,23 +16,31 @@ if len(sys.argv) > 2:
 		if genecount is not None and gc >= genecount:
 			break
 
-alg=dict()
+
 s=0
 i=0
-skip=False
+genes = []
+
 for line in open(sys.argv[1]):
 	s = line.split()
         if not s[1].isdigit():
-		if not skip:
-			l = alg.get(s[0],[])
-			l.append(s[1])
-			alg[s[0]] = l
+		genes[-1][s[0]] = s[1]
 	else:
 		i += 1
-		if subset is not None and not i in subset:
-			skip=True
-		else:
-			skip=False
+		genes.append({})
+	
+
+sys.stderr.write("subsetlength" +  str(len(subset)) + '\n')
+sys.stderr.write("genelength" +  str(len(genes)) + '\n')
+
+i=0
+alg=defaultdict(lambda:[])
+for s in subset:
+	i += 1
+	for x, g in genes[s].items():
+		alg[x].append(g)
+
+sys.stderr.write("i" +  str(i) + '\n')
 
 l = 0
 for k,vl in alg.iteritems():
@@ -38,6 +48,6 @@ for k,vl in alg.iteritems():
 	if l == 0:
 		l = len(v)
 	if l != len(v):
-		raise Exceptoin("Key %s has %d columns instead of %d" %(k,len(v),l))
+		raise Exception("Key %s has %d columns instead of %d" %(k,len(v),l))
 	print ">"+k
 	print v
